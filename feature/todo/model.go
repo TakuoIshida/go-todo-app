@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
@@ -19,15 +18,7 @@ type Todo struct {
 	// AttachmentFiles []AttachmentFile
 }
 
-type ITodoRepository interface {
-	Save(ctx *gin.Context, t Todo)
-	// Update(ctx *gin.Context, todo Todo)
-	Delete(ctx *gin.Context, id uuid.UUID)
-	FindById(ctx *gin.Context, id uuid.UUID) Todo
-	FindAll(ctx *gin.Context) []Todo
-}
-
-func New(title string, description string, userId string, tenantId uuid.UUID) (*Todo, error) {
+func New(title string, description string, userId uuid.UUID, tenantId uuid.UUID) (*Todo, error) {
 	uuid := uuid.New()
 	todo := Todo{
 		id:          uuid,

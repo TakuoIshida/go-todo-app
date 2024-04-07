@@ -38,6 +38,7 @@ type CreateTodoDto struct {
 	Title       string
 	Description string
 	UserId      uuid.UUID
+	TenantId    uuid.UUID
 }
 
 func (tc *TodoControllerImpl) Create(ctx *gin.Context) {
@@ -57,11 +58,11 @@ type DeleteTodoDto struct {
 }
 
 func (tc *TodoControllerImpl) Delete(ctx *gin.Context) {
-	var body DeleteTodoDto
-	if err := ctx.ShouldBindJSON(&body); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	id, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	tc.TodoUsecase.Delete(ctx, body.ID)
-	ctx.JSON(http.StatusCreated, body.ID)
+	tc.TodoUsecase.Delete(ctx, id)
+	ctx.JSON(http.StatusNoContent, id)
 }
