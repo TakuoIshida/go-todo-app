@@ -1,0 +1,4 @@
+CREATE DATABASE IF NOT EXISTS `tenant`;
+
+GRANT ALL PRIVILEGES ON tenant.* TO 'root';
+

@@ -12,7 +12,8 @@ func main() {
 	config.LoadConfig()
 	r := gin.New()
 	r.MaxMultipartMemory = 8 << 20 // 8 MiB
-	conn := database.NewDBClientConnector()
+	// TODO: tenantIdでRLSを実装する
+	conn := database.NewTenantClientConnector()
 
 	todoRepository := todo.NewTodoRepositoryImpl(conn.DB)
 	todoService := todo.NewTodoServiceImpl(todoRepository)

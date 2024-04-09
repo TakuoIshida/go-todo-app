@@ -14,7 +14,7 @@ type DBClientConnector struct {
 	DB *gorm.DB
 }
 
-func NewDBClientConnector() *DBClientConnector {
+func NewTenantClientConnector() *DBClientConnector {
 	if config.Conf.GoEnv != "local" {
 		db, err := connectWithCloudSql()
 		if err != nil {
@@ -38,7 +38,7 @@ func NewDBClientConnector() *DBClientConnector {
 func connectWithLocalDB() (*gorm.DB, error) {
 	fmt.Println("connectWithLocalDB")
 	cfg := config.Conf
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbName)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbTenant)
 	db, err := gorm.Open(mysql.Open(dsn))
 
 	if err != nil {
@@ -54,9 +54,9 @@ func connectWithLocalDB() (*gorm.DB, error) {
 func connectWithCloudSql() (*gorm.DB, error) {
 	fmt.Println("connectWithCloudSql")
 	cfg := config.Conf
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbName)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbTenant)
 	gormDB, err := gorm.Open(mysql.New(mysql.Config{
-		DriverName: "cloudsqlmysql", // TODO: 動作確認
+		DriverName: "mysql", // TODO: 動作確認
 		DSN:        dsn,
 	}))
 	if err != nil {
