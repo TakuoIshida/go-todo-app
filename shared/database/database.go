@@ -6,7 +6,6 @@ import (
 	"log"
 
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/mysql"
-	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -16,7 +15,7 @@ type DBClientConnector struct {
 }
 
 func NewDBClientConnector() *DBClientConnector {
-	if config.Conf.GIN_MODE == gin.ReleaseMode || config.Conf.GIN_MODE == gin.TestMode {
+	if config.Conf.GoEnv != "local" {
 		db, err := connectWithCloudSql()
 		if err != nil {
 			log.Fatalf("cannot connect with cloud db")
@@ -55,9 +54,9 @@ func connectWithLocalDB() (*gorm.DB, error) {
 func connectWithCloudSql() (*gorm.DB, error) {
 	fmt.Println("connectWithCloudSql")
 	cfg := config.Conf
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", cfg.DbHost, cfg.DbUser, cfg.DbPassword, cfg.DbName, cfg.DbPort)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbName)
 	gormDB, err := gorm.Open(mysql.New(mysql.Config{
-		DriverName: "cloudsqlpostgres",
+		DriverName: "cloudsqlmysql", // TODO: 動作確認
 		DSN:        dsn,
 	}))
 	if err != nil {
