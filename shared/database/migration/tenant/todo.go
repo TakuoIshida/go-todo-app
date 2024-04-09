@@ -1,4 +1,4 @@
-package main
+package tenant
 
 import (
 	"time"
@@ -30,5 +30,6 @@ type AttachmentFile struct {
 	Size         int64     `gorm:"type:bigint;not null"`
 	ContentType  string    `gorm:"type:varchar(255);not null"`
 	IsDeleted    bool      `gorm:"type:boolean;default:false"`
-	TodoId       uuid.UUID `gorm:"type:uuid;not null"`
+	TodoId       uuid.UUID `gorm:"type:uuid;not null;constraint:OnDelete:CASCADE;"`
 }
+
