@@ -10,7 +10,7 @@ services:
       - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
-      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_DATABASE=${DB_COMMON}
       - MYSQL_ROOT_PASSWORD=${DB_PASS}
       - MYSQL_PASSWORD=${DB_PASS}
       - TZ=${TZ}
@@ -27,7 +27,7 @@ services:
       - /var/lib/mysql
       - /var/log/mysql
     environment:
-      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_DATABASE=${DB_COMMON}
       - MYSQL_PASSWORD=${DB_PASS}
       - MYSQL_ROOT_PASSWORD=${DB_PASS}
       - TZ=${TZ}

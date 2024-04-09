@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -12,7 +11,8 @@ type Config struct {
 	GoEnv      string
 	DbHost     string
 	DbUser     string
-	DbName     string
+	DbCommon   string
+	DbTenant   string
 	DbPassword string
 	DbPort     string
 	TZ         string
@@ -22,10 +22,7 @@ var Conf Config
 
 func LoadConfig() {
 	// .env ファイルを読み込む
-	if os.Getenv("GO_ENV") == "" {
-		os.Setenv("GO_ENV", "local")
-	}
-	err := godotenv.Load(fmt.Sprintf("env/%s.env", os.Getenv("GO_ENV")))
+	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
@@ -33,7 +30,8 @@ func LoadConfig() {
 		GoEnv:      os.Getenv("GO_ENV"),
 		DbHost:     os.Getenv("DB_HOST"),
 		DbUser:     os.Getenv("DB_USER"),
-		DbName:     os.Getenv("DB_NAME"),
+		DbCommon:   os.Getenv("DB_COMMON"),
+		DbTenant:   os.Getenv("DB_TENANT"),
 		DbPassword: os.Getenv("DB_PASS"),
 		DbPort:     os.Getenv("DB_PORT"),
 		TZ:         os.Getenv("TZ"),
