@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go-todo-app/shared/database/config"
+	"go-todo-app/shared/database/migration/common"
 	"go-todo-app/shared/database/migration/tenant"
 	"log"
 
@@ -18,15 +19,43 @@ func main() {
 
 	// Initialize the database
 	tenantDBInit()
+	commonDBInit()
 	// Drop tables (constraints will be taken care of)
 	// db.Migrator().DropTable(&tenant.Todo{}, &tenant.AttachmentFile{})
 	// db.Migrator().DropTable(&tenant.Todo{})
+}
 
-	// Perform migration using go-gormigrate and rollback if it fails
+func commonDBInit() {
+	cfg := config.Conf
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbCommon)
+	db, err := gorm.Open(mysql.Open(dsn))
+	if err != nil {
+		fmt.Println(err)
+		panic("failed to connect database")
+	}
 
-	// generateTableStruct(db)
+	fmt.Println("common db connected!")
 
-	// Rollback the last successful migration
+	commonMigrations := []*gormigrate.Migration{
+		{
+			ID: "202404090000",
+			Migrate: func(tx *gorm.DB) error {
+				// it's a good pratice to copy the struct inside the function,
+				// so side effects are prevented if the original struct changes during the time
+				return tx.Migrator().AutoMigrate(&common.Example{})
+			},
+			Rollback: func(tx *gorm.DB) error {
+				log.Println("Migration Rollback")
+				return tx.Migrator().DropTable(&common.Example{})
+			},
+		},
+	}
+	migrate(db, commonMigrations)
+	fmt.Println("common db migrated!")
+
+	generateTableStruct(db, cfg.DbCommon)
+	fmt.Println("common struct generated!")
+
 }
 
 func tenantDBInit() {
@@ -58,16 +87,16 @@ func tenantDBInit() {
 	migrate(db, tenantMigrations)
 	fmt.Println("tenant db migrated!")
 
-	generateTableStruct(db)
+	generateTableStruct(db, cfg.DbTenant)
 	fmt.Println("tenant struct generated!")
 
 }
 
-func generateTableStruct(db *gorm.DB) {
+func generateTableStruct(db *gorm.DB, schemaName string) {
 	g := gen.NewGenerator(gen.Config{
-		OutPath:      "shared/database",
+		OutPath:      fmt.Sprintf("shared/database/query/%s", schemaName),
 		Mode:         gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface, // generate mode
-		ModelPkgPath: "./tenant/model",
+		ModelPkgPath: fmt.Sprintf("shared/database/model/%s", schemaName),
 	})
 
 	g.UseDB(db) // reuse your gorm db
