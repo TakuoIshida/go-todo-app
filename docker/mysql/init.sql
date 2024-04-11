@@ -1,4 +1,4 @@
 CREATE DATABASE IF NOT EXISTS `tenant`;
 
-GRANT ALL PRIVILEGES ON tenant.* TO 'root';
-
+-- GRANT ALL PRIVILEGES ON tenant.* TO 'root';
+-- GRANT ALL PRIVILEGES ON common.* TO 'root';

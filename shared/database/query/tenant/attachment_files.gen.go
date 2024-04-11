@@ -27,8 +27,6 @@ func newAttachmentFile(db *gorm.DB, opts ...gen.DOOption) attachmentFile {
 
 	tableName := _attachmentFile.attachmentFileDo.TableName()
 	_attachmentFile.ALL = field.NewAsterisk(tableName)
-	_attachmentFile.CreatedAt = field.NewTime(tableName, "created_at")
-	_attachmentFile.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_attachmentFile.CreateUserID = field.NewString(tableName, "create_user_id")
 	_attachmentFile.UpdateUserID = field.NewString(tableName, "update_user_id")
 	_attachmentFile.TenantID = field.NewString(tableName, "tenant_id")
@@ -48,8 +46,6 @@ type attachmentFile struct {
 	attachmentFileDo
 
 	ALL          field.Asterisk
-	CreatedAt    field.Time
-	UpdatedAt    field.Time
 	CreateUserID field.String
 	UpdateUserID field.String
 	TenantID     field.String
@@ -75,8 +71,6 @@ func (a attachmentFile) As(alias string) *attachmentFile {
 
 func (a *attachmentFile) updateTableName(table string) *attachmentFile {
 	a.ALL = field.NewAsterisk(table)
-	a.CreatedAt = field.NewTime(table, "created_at")
-	a.UpdatedAt = field.NewTime(table, "updated_at")
 	a.CreateUserID = field.NewString(table, "create_user_id")
 	a.UpdateUserID = field.NewString(table, "update_user_id")
 	a.TenantID = field.NewString(table, "tenant_id")
@@ -102,9 +96,7 @@ func (a *attachmentFile) GetFieldByName(fieldName string) (field.OrderExpr, bool
 }
 
 func (a *attachmentFile) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 11)
-	a.fieldMap["created_at"] = a.CreatedAt
-	a.fieldMap["updated_at"] = a.UpdatedAt
+	a.fieldMap = make(map[string]field.Expr, 9)
 	a.fieldMap["create_user_id"] = a.CreateUserID
 	a.fieldMap["update_user_id"] = a.UpdateUserID
 	a.fieldMap["tenant_id"] = a.TenantID

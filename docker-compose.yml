@@ -1,23 +1,24 @@
 # 開発とテストのための2つの独立したMySQLコンテナを作成します。
 # https://qiita.com/ucan-lab/items/b094dbfc12ac1cbee8cb
-version: "3"
+version: "3.9"
 services:
   db:
+    container_name: local-db
     image: mysql:8.0
     volumes:
-      - db-store:/var/lib/mysql
+      - mysql_volume:/var/lib/mysql
       - ./logs:/var/log/mysql
       - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
       - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
-    environment:
-      - MYSQL_DATABASE=${DB_COMMON}
-      - MYSQL_ROOT_PASSWORD=${DB_PASS}
-      - MYSQL_PASSWORD=${DB_PASS}
-      - TZ=${TZ}
+    tty: true
+    stdin_open: true
+    env_file:
+      - ./.env
     ports:
-      - ${DB_PORT}:3306
+      - "${DB_PORT}:3306"
 
-  db-testing:
+  test-db:
+    container_name: test-db
     image: mysql:8.0
     volumes:
       - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
@@ -26,11 +27,23 @@ services:
     tmpfs:
       - /var/lib/mysql
       - /var/log/mysql
-    environment:
-      - MYSQL_DATABASE=${DB_COMMON}
-      - MYSQL_PASSWORD=${DB_PASS}
-      - MYSQL_ROOT_PASSWORD=${DB_PASS}
-      - TZ=${TZ}
+    env_file:
+      - ./.env
 
+  web:
+    container_name: web
+    build: . # イメージのビルドに使用するDockerfileへの相対パス
+    volumes:
+      # バインドマウント
+      - type: bind
+        source: . # ホスト側のディレクトリ
+        target: /app # コンテナ側のディレクトリ
+    env_file:
+      - ./.env
+    ports:
+      - 5050:5050
+    # 依存するサービス名(先に起動させたいサービス)
+    depends_on:
+      - db
 volumes:
-  db-store:
+  mysql_volume:

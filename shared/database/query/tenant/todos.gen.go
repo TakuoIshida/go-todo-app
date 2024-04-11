@@ -27,8 +27,6 @@ func newTodo(db *gorm.DB, opts ...gen.DOOption) todo {
 
 	tableName := _todo.todoDo.TableName()
 	_todo.ALL = field.NewAsterisk(tableName)
-	_todo.CreatedAt = field.NewTime(tableName, "created_at")
-	_todo.UpdatedAt = field.NewTime(tableName, "updated_at")
 	_todo.CreateUserID = field.NewString(tableName, "create_user_id")
 	_todo.UpdateUserID = field.NewString(tableName, "update_user_id")
 	_todo.TenantID = field.NewString(tableName, "tenant_id")
@@ -46,8 +44,6 @@ type todo struct {
 	todoDo
 
 	ALL          field.Asterisk
-	CreatedAt    field.Time
-	UpdatedAt    field.Time
 	CreateUserID field.String
 	UpdateUserID field.String
 	TenantID     field.String
@@ -71,8 +67,6 @@ func (t todo) As(alias string) *todo {
 
 func (t *todo) updateTableName(table string) *todo {
 	t.ALL = field.NewAsterisk(table)
-	t.CreatedAt = field.NewTime(table, "created_at")
-	t.UpdatedAt = field.NewTime(table, "updated_at")
 	t.CreateUserID = field.NewString(table, "create_user_id")
 	t.UpdateUserID = field.NewString(table, "update_user_id")
 	t.TenantID = field.NewString(table, "tenant_id")
@@ -96,9 +90,7 @@ func (t *todo) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (t *todo) fillFieldMap() {
-	t.fieldMap = make(map[string]field.Expr, 9)
-	t.fieldMap["created_at"] = t.CreatedAt
-	t.fieldMap["updated_at"] = t.UpdatedAt
+	t.fieldMap = make(map[string]field.Expr, 7)
 	t.fieldMap["create_user_id"] = t.CreateUserID
 	t.fieldMap["update_user_id"] = t.UpdateUserID
 	t.fieldMap["tenant_id"] = t.TenantID

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"go-todo-app/feature/todo"
 	"go-todo-app/shared/database"
 	"go-todo-app/shared/database/config"
@@ -11,11 +12,15 @@ import (
 func main() {
 	config.LoadConfig()
 	r := gin.New()
+	if config.Conf.GoEnv == "release" {
+		gin.SetMode(gin.ReleaseMode)
+		fmt.Println("run in production")
+	}
 	r.MaxMultipartMemory = 8 << 20 // 8 MiB
-	// TODO: tenantIdでRLSを実装する
-	conn := database.NewTenantClientConnector()
+	database.NewCommonClientConnector()
+	tenantConn := database.NewTenantClientConnector()
 
-	todoRepository := todo.NewTodoRepositoryImpl(conn.DB)
+	todoRepository := todo.NewTodoRepositoryImpl(tenantConn.DB)
 	todoService := todo.NewTodoServiceImpl(todoRepository)
 	todoUsecase := todo.NewTodoUsecaseImpl(todoService)
 	todoController := todo.NewTodoController(todoUsecase)
@@ -35,5 +40,7 @@ func main() {
 		})
 	})
 
-	r.Run()
+	r.GET("/album", todoController.GetAlbums)
+	fmt.Printf("Listen on http://localhost:%s !!!!!\n", config.Conf.Port)
+	r.Run(fmt.Sprintf(":%s", config.Conf.Port))
 }

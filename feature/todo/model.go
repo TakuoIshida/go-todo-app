@@ -64,3 +64,14 @@ func validate(t *Todo) error {
 
 	return nil
 }
+
+type TodoListItem struct {
+	Id           uuid.UUID `json:"id"`
+	TenantId     uuid.UUID `json:"tenantId"`
+	Title        string    `json:"title"`
+	Description  string    `json:"description"`
+	IsDeleted    bool      `json:"isDeleted"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+	UpdateUserId uuid.UUID `json:"updateUserId"`
+	// AttachmentFiles []AttachmentFile
+}

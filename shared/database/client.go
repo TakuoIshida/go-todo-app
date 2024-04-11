@@ -3,7 +3,6 @@ package database
 import (
 	"fmt"
 	"go-todo-app/shared/database/config"
-	"log"
 
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/mysql"
 	"gorm.io/driver/mysql"
@@ -15,53 +14,39 @@ type DBClientConnector struct {
 }
 
 func NewTenantClientConnector() *DBClientConnector {
-	if config.Conf.GoEnv != "local" {
-		db, err := connectWithCloudSql()
-		if err != nil {
-			log.Fatalf("cannot connect with cloud db")
-		}
-		return &DBClientConnector{
-			DB: db,
-		}
-	} else {
-		// local: config.Conf.GIN_MODE == gin.DebugMode
-		db, err := connectWithLocalDB()
-		if err != nil {
-			log.Fatalf("cannot connect with local db")
-		}
-		return &DBClientConnector{
-			DB: db,
-		}
-	}
-}
-
-func connectWithLocalDB() (*gorm.DB, error) {
-	fmt.Println("connectWithLocalDB")
 	cfg := config.Conf
+	// NOTE: db is the service name of the database in docker-compose
+	// dsn := fmt.Sprintf("%s:%s@tcp(db)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbTenant)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbTenant)
-	db, err := gorm.Open(mysql.Open(dsn))
+	tenantDb, err := gorm.Open(mysql.Open(dsn))
 
 	if err != nil {
 		fmt.Println(err)
 		panic("failed to connect database")
 	}
-	fmt.Println("db connected!!")
-	// query.SetDefault(db)
-	// fmt.Println("SetDefault!!")
-	return db, err
+	fmt.Println("tenant db connected!!")
+	// tenant.SetDefault(tenantDb)
+
+	return &DBClientConnector{
+		DB: tenantDb,
+	}
 }
 
-func connectWithCloudSql() (*gorm.DB, error) {
-	fmt.Println("connectWithCloudSql")
+func NewCommonClientConnector() *DBClientConnector {
 	cfg := config.Conf
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbTenant)
-	gormDB, err := gorm.Open(mysql.New(mysql.Config{
-		DriverName: "mysql", // TODO: 動作確認
-		DSN:        dsn,
-	}))
-	if err != nil {
-		return nil, fmt.Errorf("sql.Open: %v", err)
-	}
+	// NOTE: db is the service name of the database in docker-compose
+	// dsn := fmt.Sprintf("%s:%s@tcp(db)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbCommon)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbCommon)
+	commonDb, err := gorm.Open(mysql.Open(dsn))
 
-	return gormDB, nil
+	if err != nil {
+		fmt.Println(err)
+		panic("failed to connect database")
+	}
+	fmt.Println("common db connected!!")
+	// common.SetDefault(commonDb)
+
+	return &DBClientConnector{
+		DB: commonDb,
+	}
 }

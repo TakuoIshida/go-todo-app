@@ -1,3 +1,5 @@
 .env**
 logs
 **/main
+
+.DS_store

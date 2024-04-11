@@ -2,7 +2,10 @@ module go-todo-app
 
 go 1.21.5
 
-require gorm.io/gorm v1.25.9
+require (
+	gorm.io/gorm v1.25.9
+	gorm.io/plugin/dbresolver v1.5.1
+)
 
 require (
 	cloud.google.com/go/compute v1.23.4 // indirect
@@ -35,7 +38,6 @@ require (
 	google.golang.org/grpc v1.62.1 // indirect
 	gorm.io/datatypes v1.2.0 // indirect
 	gorm.io/hints v1.1.2 // indirect
-	gorm.io/plugin/dbresolver v1.5.1 // indirect
 )
 
 require (

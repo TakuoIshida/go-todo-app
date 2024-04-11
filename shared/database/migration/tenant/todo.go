@@ -1,14 +1,10 @@
 package tenant
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 )
 
 type Todo struct {
-	CreatedAt       time.Time `gorm:"type:timestamp;not null;default:now()"`
-	UpdatedAt       time.Time `gorm:"type:timestamp;not null;default:now()"`
 	CreateUserId    uuid.UUID `gorm:"type:char(36);not null"`
 	UpdateUserId    uuid.UUID `gorm:"type:char(36);not null"`
 	TenantId        uuid.UUID `gorm:"type:char(36);not null;index"`
@@ -20,8 +16,6 @@ type Todo struct {
 }
 
 type AttachmentFile struct {
-	CreatedAt    time.Time `gorm:"type:timestamp;not null;default:now()"`
-	UpdatedAt    time.Time `gorm:"type:timestamp;not null;default:now()"`
 	CreateUserId uuid.UUID `gorm:"type:char(36);not null"`
 	UpdateUserId uuid.UUID `gorm:"type:char(36);not null"`
 	TenantId     uuid.UUID `gorm:"type:char(36);not null;index"`

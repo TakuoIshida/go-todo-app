@@ -30,8 +30,10 @@ func (t *TodoRepositoryImpl) Delete(ctx *gin.Context, id uuid.UUID) {
 // FindAll implements TodoRepository
 func (t *TodoRepositoryImpl) FindAll(ctx *gin.Context) []Todo {
 	var todos []Todo
-	result := t.Db.Find(&todos)
-	helper.ErrorPanic(result.Error)
+	results := t.Db.Find(&todos)
+	if results.Error != nil {
+		helper.ErrorPanic(results.Error)
+	}
 	return todos
 }
 

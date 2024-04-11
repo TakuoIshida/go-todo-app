@@ -16,6 +16,7 @@ type Config struct {
 	DbPassword string
 	DbPort     string
 	TZ         string
+	Port       string
 }
 
 var Conf Config
@@ -35,5 +36,6 @@ func LoadConfig() {
 		DbPassword: os.Getenv("DB_PASS"),
 		DbPort:     os.Getenv("DB_PORT"),
 		TZ:         os.Getenv("TZ"),
+		Port:       os.Getenv("PORT"),
 	}
 }
