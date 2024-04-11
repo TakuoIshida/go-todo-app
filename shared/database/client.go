@@ -22,7 +22,7 @@ func NewTenantClientConnector() *DBClientConnector {
 	} else {
 		dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbTenant)
 	}
-	tenantDb, err := gorm.Open(mysql.Open(dsn))
+	tenantDb, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		fmt.Println(err)
@@ -44,7 +44,7 @@ func NewCommonClientConnector() *DBClientConnector {
 	} else {
 		dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbCommon)
 	}
-	commonDb, err := gorm.Open(mysql.Open(dsn))
+	commonDb, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		fmt.Println(err)

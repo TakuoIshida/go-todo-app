@@ -19,22 +19,22 @@ func NewTodoRepositoryImpl(Db *gorm.DB) ITodoRepository {
 
 // Delete implements TodoRepository
 func (t *TodoRepositoryImpl) Delete(ctx *gin.Context, id uuid.UUID) {
-	// var todo Todo
-	// result := t.Db.Where("id = ?", id).Delete(&todo)
-	// if result.RowsAffected == 0 {
-	// 	helper.ErrorPanic(result.Error)
-	// }
-	fmt.Println("delete")
+	var todo Todo
+	result := t.Db.Where("id = ?", id).Delete(&todo)
+	if result.RowsAffected == 0 {
+		helper.ErrorPanic(result.Error)
+	}
+	fmt.Println("deleted")
 }
 
 // FindAll implements TodoRepository
 func (t *TodoRepositoryImpl) FindAll(ctx *gin.Context) []Todo {
-	var todos []Todo
-	results := t.Db.Find(&todos)
-	if results.Error != nil {
-		helper.ErrorPanic(results.Error)
+	var todo []Todo
+	result := t.Db.Find(&todo)
+	if result.Error != nil {
+		helper.ErrorPanic(result.Error)
 	}
-	return todos
+	return todo
 }
 
 // FindById implements TodoRepository
