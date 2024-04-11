@@ -3,3 +3,4 @@ logs
 **/main
 
 .DS_store
+tmp/**
