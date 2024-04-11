@@ -16,8 +16,12 @@ type DBClientConnector struct {
 func NewTenantClientConnector() *DBClientConnector {
 	cfg := config.Conf
 	// NOTE: db is the service name of the database in docker-compose
-	// dsn := fmt.Sprintf("%s:%s@tcp(db)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbTenant)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbTenant)
+	var dsn string
+	if cfg.GoEnv == "local" {
+		dsn = fmt.Sprintf("%s:%s@tcp(db)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbTenant)
+	} else {
+		dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbTenant)
+	}
 	tenantDb, err := gorm.Open(mysql.Open(dsn))
 
 	if err != nil {
@@ -25,7 +29,6 @@ func NewTenantClientConnector() *DBClientConnector {
 		panic("failed to connect database")
 	}
 	fmt.Println("tenant db connected!!")
-	// tenant.SetDefault(tenantDb)
 
 	return &DBClientConnector{
 		DB: tenantDb,
@@ -35,8 +38,12 @@ func NewTenantClientConnector() *DBClientConnector {
 func NewCommonClientConnector() *DBClientConnector {
 	cfg := config.Conf
 	// NOTE: db is the service name of the database in docker-compose
-	// dsn := fmt.Sprintf("%s:%s@tcp(db)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbCommon)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbCommon)
+	var dsn string
+	if cfg.GoEnv == "local" {
+		dsn = fmt.Sprintf("%s:%s@tcp(db)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbCommon)
+	} else {
+		dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbCommon)
+	}
 	commonDb, err := gorm.Open(mysql.Open(dsn))
 
 	if err != nil {
@@ -44,7 +51,6 @@ func NewCommonClientConnector() *DBClientConnector {
 		panic("failed to connect database")
 	}
 	fmt.Println("common db connected!!")
-	// common.SetDefault(commonDb)
 
 	return &DBClientConnector{
 		DB: commonDb,

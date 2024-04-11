@@ -40,7 +40,6 @@ func main() {
 		})
 	})
 
-	r.GET("/album", todoController.GetAlbums)
 	fmt.Printf("Listen on http://localhost:%s !!!!!\n", config.Conf.Port)
 	r.Run(fmt.Sprintf(":%s", config.Conf.Port))
 }
