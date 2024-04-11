@@ -7,6 +7,7 @@ import (
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type DBClientConnector struct {
@@ -23,6 +24,10 @@ func NewTenantClientConnector() *DBClientConnector {
 		dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbTenant)
 	}
 	tenantDb, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+
+	if cfg.GoEnv == "local" {
+		tenantDb.Logger.LogMode(logger.Info)
+	}
 
 	if err != nil {
 		fmt.Println(err)
@@ -45,6 +50,10 @@ func NewCommonClientConnector() *DBClientConnector {
 		dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbCommon)
 	}
 	commonDb, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+
+	if cfg.GoEnv == "local" {
+		commonDb.Logger.LogMode(logger.Info)
+	}
 
 	if err != nil {
 		fmt.Println(err)
