@@ -32,19 +32,7 @@ func (tc *TodoControllerImpl) FindById(ctx *gin.Context) {
 func (tc *TodoControllerImpl) FindList(ctx *gin.Context) {
 	todoList := tc.TodoUsecase.FindAll(ctx)
 
-	var todoListDto []TodoListItem
-	for _, todo := range todoList {
-		todoListDto = append(todoListDto, TodoListItem{
-			Id:           todo.id,
-			Title:        todo.title,
-			Description:  todo.description,
-			IsDeleted:    todo.isDeleted,
-			UpdatedAt:    todo.updatedAt,
-			UpdateUserId: todo.updateUserId,
-		})
-
-	}
-	ctx.IndentedJSON(http.StatusOK, todoListDto)
+	ctx.IndentedJSON(http.StatusOK, todoList)
 }
 
 type CreateTodoDto struct {
