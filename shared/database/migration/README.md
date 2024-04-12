@@ -20,11 +20,12 @@ SQLを直接書く
 # migrationの実行
 
 ```
-migrate --path ./migration --database 'postgresql://postgres:postgrespw@localhost:25432/local?sslmode=disable' -verbose up
+sh up-migration.sh
 ```
 
 # rollback
 ```
+sh down-migration.sh
 migrate --path ./migration --database 'postgresql://postgres:postgrespw@localhost:25432/local?sslmode=disable' -verbose down
 ```
 
