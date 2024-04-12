@@ -7,7 +7,7 @@ migrate -version
 # migrationファイル作成
 pathはshared/database/migration直下
 ```
-migrate create -ext sql -dir ./migration -seq create_user_table
+migrate create -ext sql -dir . -seq create_user_table
 ```
 
 - -ext:	マイグレーションファイルの拡張子（今回は SQL としました）
