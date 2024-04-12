@@ -5,7 +5,7 @@ import (
 	"go-todo-app/shared/database/config"
 
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/mysql"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -14,54 +14,28 @@ type DBClientConnector struct {
 	DB *gorm.DB
 }
 
-func NewTenantClientConnector() *DBClientConnector {
+func NewClientConnector() *DBClientConnector {
 	cfg := config.Conf
 	// NOTE: db is the service name of the database in docker-compose
 	var dsn string
 	if cfg.GoEnv == "local" {
-		dsn = fmt.Sprintf("%s:%s@tcp(db)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbTenant)
+		dsn = fmt.Sprintf("postgres://%s:%s@db/%s", cfg.DbUser, cfg.DbPassword, cfg.Db)
 	} else {
-		dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbTenant)
+		dsn = fmt.Sprintf("postgres://%s:%s@%s:%s/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.Db)
 	}
-	tenantDb, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if cfg.GoEnv == "local" {
-		tenantDb.Logger.LogMode(logger.Info)
+		DB.Logger.LogMode(logger.Info)
 	}
 
 	if err != nil {
 		fmt.Println(err)
 		panic("failed to connect database")
 	}
-	fmt.Println("tenant db connected!!")
+	fmt.Println("db connected!!")
 
 	return &DBClientConnector{
-		DB: tenantDb,
-	}
-}
-
-func NewCommonClientConnector() *DBClientConnector {
-	cfg := config.Conf
-	// NOTE: db is the service name of the database in docker-compose
-	var dsn string
-	if cfg.GoEnv == "local" {
-		dsn = fmt.Sprintf("%s:%s@tcp(db)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbCommon)
-	} else {
-		dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.DbUser, cfg.DbPassword, cfg.DbHost, cfg.DbPort, cfg.DbCommon)
-	}
-	commonDb, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-
-	if cfg.GoEnv == "local" {
-		commonDb.Logger.LogMode(logger.Info)
-	}
-
-	if err != nil {
-		fmt.Println(err)
-		panic("failed to connect database")
-	}
-	fmt.Println("common db connected!!")
-
-	return &DBClientConnector{
-		DB: commonDb,
+		DB: DB,
 	}
 }

@@ -3,33 +3,23 @@
 version: "3.9"
 services:
   db:
-    container_name: local-db
-    image: mysql:8.0
-    volumes:
-      - mysql_volume:/var/lib/mysql
-      - ./logs:/var/log/mysql
-      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
-      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
-    tty: true
-    stdin_open: true
+    image: postgres:13-alpine
+    container_name: "local-db"
     env_file:
       - ./.env
     ports:
-      - "${DB_PORT}:3306"
-
-  test-db:
-    container_name: test-db
-    image: mysql:8.0
+      - "$POSTGRES_PORT:5432"
     volumes:
-      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
-      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
-    # tmpfsはコンテナが停止するとデータが消える。一時的なファイルストレージとしてマウントします。
-    tmpfs:
-      - /var/lib/mysql
-      - /var/log/mysql
+      - ./postgres/:/docker-entrypoint-initdb.d
+  db-latest:
+    image: postgres:16-alpine
+    container_name: "local-db-latest"
     env_file:
       - ./.env
-
+    ports:
+      - "$POSTGRES_PORT_LATEST:5432"
+    volumes:
+      - ./postgres/:/docker-entrypoint-initdb.d
   web:
     container_name: web
     build: . # イメージのビルドに使用するDockerfileへの相対パス
@@ -46,4 +36,5 @@ services:
     depends_on:
       - db
 volumes:
-  mysql_volume:
+  database:
+    driver: local

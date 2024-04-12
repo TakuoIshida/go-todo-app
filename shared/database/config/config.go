@@ -8,15 +8,15 @@ import (
 )
 
 type Config struct {
-	GoEnv      string
-	DbHost     string
-	DbUser     string
-	DbCommon   string
-	DbTenant   string
-	DbPassword string
-	DbPort     string
-	TZ         string
-	Port       string
+	GoEnv        string
+	DbHost       string
+	DbUser       string
+	Db           string
+	DbPassword   string
+	DbPort       string
+	DbPortLatest string
+	TZ           string
+	Port         string
 }
 
 var Conf Config
@@ -28,14 +28,14 @@ func LoadConfig() {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 	Conf = Config{
-		GoEnv:      os.Getenv("GO_ENV"),
-		DbHost:     os.Getenv("DB_HOST"),
-		DbUser:     os.Getenv("DB_USER"),
-		DbCommon:   os.Getenv("DB_COMMON"),
-		DbTenant:   os.Getenv("DB_TENANT"),
-		DbPassword: os.Getenv("DB_PASS"),
-		DbPort:     os.Getenv("DB_PORT"),
-		TZ:         os.Getenv("TZ"),
-		Port:       os.Getenv("PORT"),
+		GoEnv:        os.Getenv("GO_ENV"),
+		DbHost:       os.Getenv("POSTGRES_HOST"),
+		DbUser:       os.Getenv("POSTGRES_USER"),
+		Db:           os.Getenv("POSTGRES_DB"),
+		DbPassword:   os.Getenv("POSTGRES_PASSWORD"),
+		DbPort:       os.Getenv("POSTGRES_PORT"),
+		DbPortLatest: os.Getenv("POSTGRES_PORT_LATEST"),
+		TZ:           os.Getenv("TZ"),
+		Port:         os.Getenv("PORT"),
 	}
 }

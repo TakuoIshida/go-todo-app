@@ -17,10 +17,9 @@ func main() {
 		fmt.Println("run in production")
 	}
 	r.MaxMultipartMemory = 8 << 20 // 8 MiB
-	database.NewCommonClientConnector()
-	tenantConn := database.NewTenantClientConnector()
+	conn := database.NewClientConnector()
 
-	todoRepository := todo.NewTodoRepositoryImpl(tenantConn.DB)
+	todoRepository := todo.NewTodoRepositoryImpl(conn.DB)
 	todoService := todo.NewTodoServiceImpl(todoRepository)
 	todoUsecase := todo.NewTodoUsecaseImpl(todoService)
 	todoController := todo.NewTodoController(todoUsecase)
