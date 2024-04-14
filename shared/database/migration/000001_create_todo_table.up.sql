@@ -1,6 +1,6 @@
 SET search_path TO tenant;
 
-CREATE TABLE todo(
+CREATE TABLE todos(
   create_user_id uuid NOT NULL,
   update_user_id uuid NOT NULL,
   created_at timestamp DEFAULT CURRENT_TIMESTAMP,
@@ -12,5 +12,5 @@ CREATE TABLE todo(
   is_deleted bool NOT NULL
 );
 
-CREATE INDEX idx_todo_tenant_id ON todo(tenant_id);
+CREATE INDEX idx_todo_tenant_id ON todos(tenant_id);
 

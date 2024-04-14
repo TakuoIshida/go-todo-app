@@ -1,6 +1,6 @@
 SET search_path TO common;
 
-CREATE TABLE tenant(
+CREATE TABLE tenants(
   create_user_id uuid NOT NULL,
   update_user_id uuid NOT NULL,
   created_at timestamp DEFAULT CURRENT_TIMESTAMP,
