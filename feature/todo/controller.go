@@ -32,18 +32,16 @@ func (tc *TodoControllerImpl) FindById(ctx *gin.Context) {
 func (tc *TodoControllerImpl) FindList(ctx *gin.Context) {
 	todoList := tc.TodoUsecase.FindAll(ctx)
 
-	ctx.IndentedJSON(http.StatusOK, todoList)
-}
-
-type CreateTodoDto struct {
-	Title       string
-	Description string
-	UserId      uuid.UUID
-	TenantId    uuid.UUID
+	ctx.JSON(http.StatusOK, todoList)
 }
 
 func (tc *TodoControllerImpl) Create(ctx *gin.Context) {
-	var body CreateTodoDto
+	var body struct {
+		Title       string
+		Description string
+		UserId      uuid.UUID
+		TenantId    uuid.UUID
+	}
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -54,16 +52,21 @@ func (tc *TodoControllerImpl) Create(ctx *gin.Context) {
 	ctx.Status(http.StatusCreated)
 }
 
-type DeleteTodoDto struct {
-	ID uuid.UUID
-}
-
 func (tc *TodoControllerImpl) Delete(ctx *gin.Context) {
-	id, err := uuid.Parse(ctx.Param("id"))
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	var body struct {
+		Id string
+	}
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	tc.TodoUsecase.Delete(ctx, id)
-	ctx.JSON(http.StatusNoContent, id)
+
+	validId, err := uuid.Parse(body.Id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tc.TodoUsecase.Delete(ctx, validId)
+	ctx.JSON(http.StatusNoContent, validId)
 }

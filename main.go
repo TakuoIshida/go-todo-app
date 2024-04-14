@@ -30,7 +30,7 @@ func main() {
 		todoGroup.GET("/:id", todoController.FindById)
 		todoGroup.POST("/", todoController.Create)
 		// todoGroup.PUT("/", todoController.Update)
-		todoGroup.DELETE("/:id", todoController.Delete)
+		todoGroup.DELETE("/", todoController.Delete)
 	}
 
 	r.GET("/ping", func(c *gin.Context) {

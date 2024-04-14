@@ -31,7 +31,14 @@ func (tu *TodoUsecaseImpl) Create(ctx *gin.Context, req CreateTodoRequest) {
 
 // Delete implements TodoService
 func (tu *TodoUsecaseImpl) Delete(ctx *gin.Context, id uuid.UUID) {
-	tu.todoService.Delete(ctx, id, tu.db)
+	tenantId, err := uuid.Parse("a5251b75-575d-437b-aff0-a029e509ff06")
+	if err != nil {
+		panic(err)
+	}
+	database.TenantTx(tu.db, tenantId, func(session *gorm.DB) error {
+		tu.todoService.Delete(ctx, id, session)
+		return nil
+	})
 }
 
 // FindAll implements TodoService
@@ -47,7 +54,13 @@ func (tu *TodoUsecaseImpl) FindAll(ctx *gin.Context) []Todo {
 
 // FindById implements TodoService
 func (tu *TodoUsecaseImpl) FindById(ctx *gin.Context, id uuid.UUID) Todo {
-	return tu.todoService.FindById(ctx, id, tu.db)
+	tenantId, err := uuid.Parse("a5251b75-575d-437b-aff0-a029e509ff06")
+	if err != nil {
+		panic(err)
+	}
+	return database.TenantQuery(tu.db, tenantId, func(session *gorm.DB) Todo {
+		return tu.todoService.FindById(ctx, id, session)
+	})
 }
 
 // // Update implements TodoService
