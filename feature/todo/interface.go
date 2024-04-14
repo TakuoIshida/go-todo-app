@@ -23,17 +23,17 @@ type ITodoUsecase interface {
 }
 
 type ITodoService interface {
-	Create(ctx *gin.Context, t *Todo, db *gorm.DB)
+	Create(ctx *gin.Context, t *Todo, session *gorm.DB)
 	// Update(ctx *gin.Context, todo request.UpdatetodoRequest)
-	Delete(ctx *gin.Context, id uuid.UUID, db *gorm.DB)
-	FindById(ctx *gin.Context, id uuid.UUID, db *gorm.DB) Todo
+	Delete(ctx *gin.Context, id uuid.UUID, session *gorm.DB)
+	FindById(ctx *gin.Context, id uuid.UUID, session *gorm.DB) Todo
 	FindAll(ctx *gin.Context, session *gorm.DB) []Todo
 }
 
 type ITodoRepository interface {
-	Save(ctx *gin.Context, t *Todo, db *gorm.DB)
+	Save(ctx *gin.Context, t *Todo, session *gorm.DB)
 	// Update(ctx *gin.Context, todo Todo)
-	Delete(ctx *gin.Context, id uuid.UUID, db *gorm.DB)
-	FindById(ctx *gin.Context, id uuid.UUID, db *gorm.DB) Todo
+	Delete(ctx *gin.Context, id uuid.UUID, session *gorm.DB)
+	FindById(ctx *gin.Context, id uuid.UUID, session *gorm.DB) Todo
 	FindAll(ctx *gin.Context, session *gorm.DB) []Todo
 }

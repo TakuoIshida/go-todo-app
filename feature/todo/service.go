@@ -17,23 +17,23 @@ func NewTodoServiceImpl(tr ITodoRepository) ITodoService {
 }
 
 // Create implements TodoService
-func (t *TodoServiceImpl) Create(ctx *gin.Context, todo *Todo, db *gorm.DB) {
-	t.TodoRepository.Save(ctx, todo, db)
+func (t *TodoServiceImpl) Create(ctx *gin.Context, todo *Todo, session *gorm.DB) {
+	t.TodoRepository.Save(ctx, todo, session)
 }
 
 // Delete implements TodoService
-func (t *TodoServiceImpl) Delete(ctx *gin.Context, id uuid.UUID, db *gorm.DB) {
-	t.TodoRepository.Delete(ctx, id, db)
+func (t *TodoServiceImpl) Delete(ctx *gin.Context, id uuid.UUID, session *gorm.DB) {
+	t.TodoRepository.Delete(ctx, id, session)
 }
 
 // FindAll implements TodoService
-func (t *TodoServiceImpl) FindAll(ctx *gin.Context, db *gorm.DB) []Todo {
-	return t.TodoRepository.FindAll(ctx, db)
+func (t *TodoServiceImpl) FindAll(ctx *gin.Context, session *gorm.DB) []Todo {
+	return t.TodoRepository.FindAll(ctx, session)
 }
 
 // FindById implements TodoService
-func (t *TodoServiceImpl) FindById(ctx *gin.Context, id uuid.UUID, db *gorm.DB) Todo {
-	return t.TodoRepository.FindById(ctx, id, db)
+func (t *TodoServiceImpl) FindById(ctx *gin.Context, id uuid.UUID, session *gorm.DB) Todo {
+	return t.TodoRepository.FindById(ctx, id, session)
 }
 
 // // Update implements TodoService

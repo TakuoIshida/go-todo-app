@@ -17,9 +17,9 @@ func NewTodoRepositoryImpl() ITodoRepository {
 }
 
 // Delete implements TodoRepository
-func (t *TodoRepositoryImpl) Delete(ctx *gin.Context, id uuid.UUID, db *gorm.DB) {
+func (t *TodoRepositoryImpl) Delete(ctx *gin.Context, id uuid.UUID, session *gorm.DB) {
 	var todo Todo
-	result := db.Where("id = ?", id).Delete(&todo)
+	result := session.Where("id = ?", id).Delete(&todo)
 	if result.RowsAffected == 0 {
 		helper.ErrorPanic(result.Error)
 	}
@@ -37,7 +37,7 @@ func (t *TodoRepositoryImpl) FindAll(ctx *gin.Context, session *gorm.DB) []Todo 
 }
 
 // FindById implements TodoRepository
-func (t *TodoRepositoryImpl) FindById(ctx *gin.Context, id uuid.UUID, db *gorm.DB) Todo {
+func (t *TodoRepositoryImpl) FindById(ctx *gin.Context, id uuid.UUID, session *gorm.DB) Todo {
 	// genから生成したmodelでも取得できるがmappingが大変。
 	// DDDでentity = tableの場合 => GORMのdomain/modelのentityのまま利用した方が良さそう
 	// DDDでentity = tableの場合 => GORMのdomain/modelのentityのまま利用した方が良さそう
@@ -46,14 +46,14 @@ func (t *TodoRepositoryImpl) FindById(ctx *gin.Context, id uuid.UUID, db *gorm.D
 	// 	panic(err)
 	// }
 	var todo Todo
-	result := db.Find(&todo, id)
+	result := session.Find(&todo, id)
 	fmt.Println(result)
 
 	return todo
 }
 
 // Save implements TodoRepository
-func (t *TodoRepositoryImpl) Save(ctx *gin.Context, todo *Todo, db *gorm.DB) {
-	result := db.Create(&todo)
+func (t *TodoRepositoryImpl) Save(ctx *gin.Context, todo *Todo, session *gorm.DB) {
+	result := session.Create(&todo)
 	helper.ErrorPanic(result.Error)
 }
