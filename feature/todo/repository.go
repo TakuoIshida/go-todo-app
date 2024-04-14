@@ -10,17 +10,16 @@ import (
 )
 
 type TodoRepositoryImpl struct {
-	Db *gorm.DB
 }
 
-func NewTodoRepositoryImpl(Db *gorm.DB) ITodoRepository {
-	return &TodoRepositoryImpl{Db: Db}
+func NewTodoRepositoryImpl() ITodoRepository {
+	return &TodoRepositoryImpl{}
 }
 
 // Delete implements TodoRepository
-func (t *TodoRepositoryImpl) Delete(ctx *gin.Context, id uuid.UUID) {
+func (t *TodoRepositoryImpl) Delete(ctx *gin.Context, id uuid.UUID, db *gorm.DB) {
 	var todo Todo
-	result := t.Db.Where("id = ?", id).Delete(&todo)
+	result := db.Where("id = ?", id).Delete(&todo)
 	if result.RowsAffected == 0 {
 		helper.ErrorPanic(result.Error)
 	}
@@ -28,9 +27,9 @@ func (t *TodoRepositoryImpl) Delete(ctx *gin.Context, id uuid.UUID) {
 }
 
 // FindAll implements TodoRepository
-func (t *TodoRepositoryImpl) FindAll(ctx *gin.Context) []Todo {
+func (t *TodoRepositoryImpl) FindAll(ctx *gin.Context, session *gorm.DB) []Todo {
 	var todo []Todo
-	result := t.Db.Find(&todo)
+	result := session.Find(&todo)
 	if result.Error != nil {
 		helper.ErrorPanic(result.Error)
 	}
@@ -38,7 +37,7 @@ func (t *TodoRepositoryImpl) FindAll(ctx *gin.Context) []Todo {
 }
 
 // FindById implements TodoRepository
-func (t *TodoRepositoryImpl) FindById(ctx *gin.Context, id uuid.UUID) Todo {
+func (t *TodoRepositoryImpl) FindById(ctx *gin.Context, id uuid.UUID, db *gorm.DB) Todo {
 	// genから生成したmodelでも取得できるがmappingが大変。
 	// DDDでentity = tableの場合 => GORMのdomain/modelのentityのまま利用した方が良さそう
 	// DDDでentity = tableの場合 => GORMのdomain/modelのentityのまま利用した方が良さそう
@@ -47,14 +46,14 @@ func (t *TodoRepositoryImpl) FindById(ctx *gin.Context, id uuid.UUID) Todo {
 	// 	panic(err)
 	// }
 	var todo Todo
-	result := t.Db.Find(&todo, id)
+	result := db.Find(&todo, id)
 	fmt.Println(result)
 
 	return todo
 }
 
 // Save implements TodoRepository
-func (t *TodoRepositoryImpl) Save(ctx *gin.Context, todo *Todo) {
-	result := t.Db.Create(&todo)
+func (t *TodoRepositoryImpl) Save(ctx *gin.Context, todo *Todo, db *gorm.DB) {
+	result := db.Create(&todo)
 	helper.ErrorPanic(result.Error)
 }

@@ -1,39 +1,50 @@
 package todo
 
 import (
+	"go-todo-app/shared/database"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type TodoUsecaseImpl struct {
-	TodoService ITodoService
+	todoService ITodoService
+	db          *gorm.DB
 }
 
-func NewTodoUsecaseImpl(ts ITodoService) ITodoUsecase {
+func NewTodoUsecaseImpl(ts ITodoService, db *gorm.DB) ITodoUsecase {
 	return &TodoUsecaseImpl{
-		TodoService: ts,
+		todoService: ts,
+		db:          db,
 	}
 }
 
 // Create implements todoservice.ITodoService.
 func (tu *TodoUsecaseImpl) Create(ctx *gin.Context, req CreateTodoRequest) {
 	new, _ := New(req.Title, req.Description, req.UserId, req.TenantId)
-	tu.TodoService.Create(ctx, new)
+	tu.todoService.Create(ctx, new, tu.db)
 }
 
 // Delete implements TodoService
 func (tu *TodoUsecaseImpl) Delete(ctx *gin.Context, id uuid.UUID) {
-	tu.TodoService.Delete(ctx, id)
+	tu.todoService.Delete(ctx, id, tu.db)
 }
 
 // FindAll implements TodoService
 func (tu *TodoUsecaseImpl) FindAll(ctx *gin.Context) []Todo {
-	return tu.TodoService.FindAll(ctx)
+	tenantId, err := uuid.Parse("a5251b75-575d-437b-aff0-a029e509ff06")
+	if err != nil {
+		panic(err)
+	}
+	return database.TenantQuery(tu.db, tenantId, func(session *gorm.DB) []Todo {
+		return tu.todoService.FindAll(ctx, session)
+	})
 }
 
 // FindById implements TodoService
 func (tu *TodoUsecaseImpl) FindById(ctx *gin.Context, id uuid.UUID) Todo {
-	return tu.TodoService.FindById(ctx, id)
+	return tu.todoService.FindById(ctx, id, tu.db)
 }
 
 // // Update implements TodoService

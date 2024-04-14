@@ -19,9 +19,9 @@ func main() {
 	r.MaxMultipartMemory = 8 << 20 // 8 MiB
 	conn := database.NewClientConnector()
 
-	todoRepository := todo.NewTodoRepositoryImpl(conn.DB)
+	todoRepository := todo.NewTodoRepositoryImpl()
 	todoService := todo.NewTodoServiceImpl(todoRepository)
-	todoUsecase := todo.NewTodoUsecaseImpl(todoService)
+	todoUsecase := todo.NewTodoUsecaseImpl(todoService, conn.DB)
 	todoController := todo.NewTodoController(todoUsecase)
 
 	todoGroup := r.Group("/todo")

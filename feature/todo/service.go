@@ -3,6 +3,7 @@ package todo
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type TodoServiceImpl struct {
@@ -16,23 +17,23 @@ func NewTodoServiceImpl(tr ITodoRepository) ITodoService {
 }
 
 // Create implements TodoService
-func (t *TodoServiceImpl) Create(ctx *gin.Context, todo *Todo) {
-	t.TodoRepository.Save(ctx, todo)
+func (t *TodoServiceImpl) Create(ctx *gin.Context, todo *Todo, db *gorm.DB) {
+	t.TodoRepository.Save(ctx, todo, db)
 }
 
 // Delete implements TodoService
-func (t *TodoServiceImpl) Delete(ctx *gin.Context, id uuid.UUID) {
-	t.TodoRepository.Delete(ctx, id)
+func (t *TodoServiceImpl) Delete(ctx *gin.Context, id uuid.UUID, db *gorm.DB) {
+	t.TodoRepository.Delete(ctx, id, db)
 }
 
 // FindAll implements TodoService
-func (t *TodoServiceImpl) FindAll(ctx *gin.Context) []Todo {
-	return t.TodoRepository.FindAll(ctx)
+func (t *TodoServiceImpl) FindAll(ctx *gin.Context, db *gorm.DB) []Todo {
+	return t.TodoRepository.FindAll(ctx, db)
 }
 
 // FindById implements TodoService
-func (t *TodoServiceImpl) FindById(ctx *gin.Context, id uuid.UUID) Todo {
-	return t.TodoRepository.FindById(ctx, id)
+func (t *TodoServiceImpl) FindById(ctx *gin.Context, id uuid.UUID, db *gorm.DB) Todo {
+	return t.TodoRepository.FindById(ctx, id, db)
 }
 
 // // Update implements TodoService
