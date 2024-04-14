@@ -23,7 +23,10 @@ func NewTodoUsecaseImpl(ts ITodoService, db *gorm.DB) ITodoUsecase {
 // Create implements todoservice.ITodoService.
 func (tu *TodoUsecaseImpl) Create(ctx *gin.Context, req CreateTodoRequest) {
 	new, _ := New(req.Title, req.Description, req.UserId, req.TenantId)
-	tu.todoService.Create(ctx, new, tu.db)
+	database.TenantTx(tu.db, req.TenantId, func(session *gorm.DB) error {
+		tu.todoService.Create(ctx, new, session)
+		return nil
+	})
 }
 
 // Delete implements TodoService
