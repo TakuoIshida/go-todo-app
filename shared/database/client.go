@@ -42,20 +42,23 @@ func NewClientConnector() *DBClientConnector {
 	}
 }
 
-func TenantTx(db *gorm.DB, tenantId string, callback func() error) error {
-	db.Set("app.tenant_id", tenantId)
-	db.Transaction(func(tx *gorm.DB) error {
-		if err := callback(); err != nil {
-			return err
-		}
+func TenantTx[T any](db *gorm.DB, tenantId uuid.UUID, callback func(session *gorm.DB) T) T {
+	db.Config.NamingStrategy = schema.NamingStrategy{
+		TablePrefix: "tenant.",
+	}
+	// Set the tenant ID for RLS using the context option
+	var result T
+	db.Transaction(func(session *gorm.DB) error {
+		// escapeをするとsyntaxエラーになるため、Sprintfで対応。
+		session.Exec(fmt.Sprintf("SET app.tenant_id = '%s';", tenantId.String()))
+		result = callback(session)
 		return nil
 	})
-	db.Set("app.tenant_id", "")
 
-	return nil
+	return result
 }
 
-func TenantQuery[T interface{}](db *gorm.DB, tenantId uuid.UUID, callback func(session *gorm.DB) T) T {
+func TenantQuery[T any](db *gorm.DB, tenantId uuid.UUID, callback func(session *gorm.DB) T) T {
 	db.Config.NamingStrategy = schema.NamingStrategy{
 		TablePrefix: "tenant.",
 	}
