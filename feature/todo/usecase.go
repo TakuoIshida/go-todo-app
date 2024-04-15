@@ -1,6 +1,7 @@
 package todo
 
 import (
+	"go-todo-app/feature/user"
 	"go-todo-app/shared/database"
 
 	"github.com/gin-gonic/gin"
@@ -30,13 +31,9 @@ func (tu *TodoUsecaseImpl) Create(ctx *gin.Context, req CreateTodoRequest) {
 }
 
 // Delete implements TodoService
-func (tu *TodoUsecaseImpl) Delete(ctx *gin.Context, id uuid.UUID) {
-	tenantId, err := uuid.Parse("6be98432-2812-4ce0-a342-214e52aa791c")
-	if err != nil {
-		panic(err)
-	}
-	database.TenantTx(tu.db, tenantId, func(session *gorm.DB) error {
-		tu.todoService.Delete(ctx, id, session)
+func (tu *TodoUsecaseImpl) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) {
+	database.TenantTx(tu.db, userContext.TenantId, func(session *gorm.DB) error {
+		tu.todoService.Delete(ctx, userContext, id, session)
 		return nil
 	})
 }

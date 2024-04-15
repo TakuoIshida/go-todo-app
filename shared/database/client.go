@@ -73,15 +73,3 @@ func TenantQuery[T any](db *gorm.DB, tenantId uuid.UUID, callback func(session *
 
 	return result
 }
-
-// func getSearchPath(db *gorm.DB) {
-// 	var currentSchema string
-// 	rows, err := db.Debug().Raw("show search_path").Rows()
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	rows.Next() // to get the first and only result
-// 	rows.Scan(&currentSchema)
-// 	fmt.Printf("Search Path: %v\n", currentSchema)
-
-// }

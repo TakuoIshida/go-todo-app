@@ -1,6 +1,8 @@
 package todo
 
 import (
+	"go-todo-app/feature/user"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -22,8 +24,8 @@ func (t *TodoServiceImpl) Create(ctx *gin.Context, todo *Todo, session *gorm.DB)
 }
 
 // Delete implements TodoService
-func (t *TodoServiceImpl) Delete(ctx *gin.Context, id uuid.UUID, session *gorm.DB) {
-	t.TodoRepository.Delete(ctx, id, session)
+func (t *TodoServiceImpl) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) {
+	t.TodoRepository.Delete(ctx, userContext, id, session)
 }
 
 // FindAll implements TodoService

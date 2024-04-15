@@ -1,7 +1,9 @@
 package todo
 
 import (
+	"go-todo-app/feature/user"
 	"go-todo-app/helper"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -22,12 +24,12 @@ func (t *TodoRepositoryImpl) Save(ctx *gin.Context, todo *Todo, session *gorm.DB
 }
 
 // Delete implements TodoRepository
-func (t *TodoRepositoryImpl) Delete(ctx *gin.Context, id uuid.UUID, session *gorm.DB) {
+func (t *TodoRepositoryImpl) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) {
 	var todo Todo
 	findResult := session.Find(&todo, id)
 	helper.ErrorPanic(findResult.Error)
 
-	result := session.Save(&todo).Where("is_deleted = ?", false).Update("is_deleted", true)
+	result := session.Model(&todo).Where("is_deleted = ?", false).Updates(Todo{IsDeleted: true, UpdatedAt: time.Now(), UpdateUserId: userContext.Id})
 	helper.ErrorPanic(result.Error)
 }
 

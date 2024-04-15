@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go-todo-app/feature/todo"
+	auth "go-todo-app/middleware"
 	"go-todo-app/shared/database"
 	"go-todo-app/shared/database/config"
 
@@ -18,6 +19,8 @@ func main() {
 	}
 	r.MaxMultipartMemory = 8 << 20 // 8 MiB
 	conn := database.NewClientConnector()
+
+	r.Use(auth.AuthRequired())
 
 	todoRepository := todo.NewTodoRepositoryImpl()
 	todoService := todo.NewTodoServiceImpl(todoRepository)

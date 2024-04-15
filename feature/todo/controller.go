@@ -1,6 +1,7 @@
 package todo
 
 import (
+	auth "go-todo-app/middleware"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -65,6 +66,12 @@ func (tc *TodoControllerImpl) Delete(ctx *gin.Context) {
 		return
 	}
 
-	tc.TodoUsecase.Delete(ctx, validId)
+	userContext, err := auth.GetPrincipal(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tc.TodoUsecase.Delete(ctx, userContext, validId)
 	ctx.JSON(http.StatusNoContent, validId)
 }
