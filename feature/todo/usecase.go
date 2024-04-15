@@ -31,7 +31,7 @@ func (tu *TodoUsecaseImpl) Create(ctx *gin.Context, req CreateTodoRequest) {
 
 // Delete implements TodoService
 func (tu *TodoUsecaseImpl) Delete(ctx *gin.Context, id uuid.UUID) {
-	tenantId, err := uuid.Parse("a5251b75-575d-437b-aff0-a029e509ff06")
+	tenantId, err := uuid.Parse("6be98432-2812-4ce0-a342-214e52aa791c")
 	if err != nil {
 		panic(err)
 	}
@@ -43,7 +43,7 @@ func (tu *TodoUsecaseImpl) Delete(ctx *gin.Context, id uuid.UUID) {
 
 // FindAll implements TodoService
 func (tu *TodoUsecaseImpl) FindAll(ctx *gin.Context) []Todo {
-	tenantId, err := uuid.Parse("a5251b75-575d-437b-aff0-a029e509ff06")
+	tenantId, err := uuid.Parse("6be98432-2812-4ce0-a342-214e52aa791c")
 	if err != nil {
 		panic(err)
 	}

@@ -25,13 +25,11 @@ func (tc *TodoControllerImpl) FindById(ctx *gin.Context) {
 	}
 
 	todo := tc.TodoUsecase.FindById(ctx, id)
-
 	ctx.JSON(http.StatusOK, todo)
 }
 
 func (tc *TodoControllerImpl) FindList(ctx *gin.Context) {
 	todoList := tc.TodoUsecase.FindAll(ctx)
-
 	ctx.JSON(http.StatusOK, todoList)
 }
 

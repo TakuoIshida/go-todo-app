@@ -13,6 +13,8 @@ type Todo struct {
 	Title        string    `json:"title"`
 	Description  string    `json:"description"`
 	IsDeleted    bool      `json:"isDeleted"`
+	CreatedAt    time.Time `json:"createdAt"`
+	CreateUserId uuid.UUID `json:"createUserId"`
 	UpdatedAt    time.Time `json:"updatedAt"`
 	UpdateUserId uuid.UUID `json:"updateUserId"`
 	// AttachmentFiles []AttachmentFile
@@ -20,12 +22,17 @@ type Todo struct {
 
 func New(title string, description string, userId uuid.UUID, tenantId uuid.UUID) (*Todo, error) {
 	uuid := uuid.New()
+	now := time.Now()
 	todo := Todo{
-		Id:          uuid,
-		TenantId:    tenantId,
-		Title:       title,
-		Description: description,
-		IsDeleted:   false,
+		Id:           uuid,
+		TenantId:     tenantId,
+		Title:        title,
+		Description:  description,
+		IsDeleted:    false,
+		CreatedAt:    now,
+		CreateUserId: userId,
+		UpdatedAt:    now,
+		UpdateUserId: userId,
 	}
 
 	if err := validate(&todo); err != nil {
