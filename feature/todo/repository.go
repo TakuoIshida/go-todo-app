@@ -17,8 +17,8 @@ func NewTodoRepositoryImpl() ITodoRepository {
 	return &TodoRepositoryImpl{}
 }
 
-// Save implements TodoRepository
-func (t *TodoRepositoryImpl) Save(ctx *gin.Context, todo *Todo, session *gorm.DB) {
+// Create implements TodoRepository
+func (t *TodoRepositoryImpl) Create(ctx *gin.Context, userContext user.UserContext, todo *Todo, session *gorm.DB) {
 	result := session.Create(&todo)
 	helper.ErrorPanic(result.Error)
 }
@@ -34,7 +34,7 @@ func (t *TodoRepositoryImpl) Delete(ctx *gin.Context, userContext user.UserConte
 }
 
 // FindAll implements TodoRepository
-func (t *TodoRepositoryImpl) FindAll(ctx *gin.Context, session *gorm.DB) []Todo {
+func (t *TodoRepositoryImpl) FindAll(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) []Todo {
 	var todo []Todo
 	result := session.Find(&todo)
 	helper.ErrorPanic(result.Error)
@@ -42,7 +42,7 @@ func (t *TodoRepositoryImpl) FindAll(ctx *gin.Context, session *gorm.DB) []Todo 
 }
 
 // FindById implements TodoRepository
-func (t *TodoRepositoryImpl) FindById(ctx *gin.Context, id uuid.UUID, session *gorm.DB) Todo {
+func (t *TodoRepositoryImpl) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) Todo {
 	var todo Todo
 	result := session.Find(&todo, id)
 	helper.ErrorPanic(result.Error)

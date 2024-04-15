@@ -25,12 +25,24 @@ func (tc *TodoControllerImpl) FindById(ctx *gin.Context) {
 		return
 	}
 
-	todo := tc.TodoUsecase.FindById(ctx, id)
+	userContext, err := auth.GetPrincipal(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	todo := tc.TodoUsecase.FindById(ctx, userContext, id)
 	ctx.JSON(http.StatusOK, todo)
 }
 
 func (tc *TodoControllerImpl) FindList(ctx *gin.Context) {
-	todoList := tc.TodoUsecase.FindAll(ctx)
+	userContext, err := auth.GetPrincipal(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	todoList := tc.TodoUsecase.FindAll(ctx, userContext)
 	ctx.JSON(http.StatusOK, todoList)
 }
 
@@ -38,15 +50,19 @@ func (tc *TodoControllerImpl) Create(ctx *gin.Context) {
 	var body struct {
 		Title       string
 		Description string
-		UserId      uuid.UUID
-		TenantId    uuid.UUID
 	}
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	tc.TodoUsecase.Create(ctx, CreateTodoRequest(body))
+	userContext, err := auth.GetPrincipal(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tc.TodoUsecase.Create(ctx, userContext, CreateTodoRequest(body))
 
 	ctx.Status(http.StatusCreated)
 }

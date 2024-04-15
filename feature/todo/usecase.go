@@ -22,10 +22,10 @@ func NewTodoUsecaseImpl(ts ITodoService, db *gorm.DB) ITodoUsecase {
 }
 
 // Create implements todoservice.ITodoService.
-func (tu *TodoUsecaseImpl) Create(ctx *gin.Context, req CreateTodoRequest) {
-	new, _ := New(req.Title, req.Description, req.UserId, req.TenantId)
-	database.TenantTx(tu.db, req.TenantId, func(session *gorm.DB) error {
-		tu.todoService.Create(ctx, new, session)
+func (tu *TodoUsecaseImpl) Create(ctx *gin.Context, userContext user.UserContext, req CreateTodoRequest) {
+	new, _ := New(req.Title, req.Description, userContext.Id, userContext.TenantId)
+	database.TenantTx(tu.db, userContext.TenantId, func(session *gorm.DB) error {
+		tu.todoService.Create(ctx, userContext, new, session)
 		return nil
 	})
 }
@@ -39,24 +39,17 @@ func (tu *TodoUsecaseImpl) Delete(ctx *gin.Context, userContext user.UserContext
 }
 
 // FindAll implements TodoService
-func (tu *TodoUsecaseImpl) FindAll(ctx *gin.Context) []Todo {
-	tenantId, err := uuid.Parse("6be98432-2812-4ce0-a342-214e52aa791c")
-	if err != nil {
-		panic(err)
-	}
-	return database.TenantQuery(tu.db, tenantId, func(session *gorm.DB) []Todo {
-		return tu.todoService.FindAll(ctx, session)
+func (tu *TodoUsecaseImpl) FindAll(ctx *gin.Context, userContext user.UserContext) []Todo {
+	return database.TenantQuery(tu.db, userContext.TenantId, func(session *gorm.DB) []Todo {
+		return tu.todoService.FindAll(ctx, userContext, session)
 	})
 }
 
 // FindById implements TodoService
-func (tu *TodoUsecaseImpl) FindById(ctx *gin.Context, id uuid.UUID) Todo {
-	tenantId, err := uuid.Parse("a5251b75-575d-437b-aff0-a029e509ff06")
-	if err != nil {
-		panic(err)
-	}
-	return database.TenantQuery(tu.db, tenantId, func(session *gorm.DB) Todo {
-		return tu.todoService.FindById(ctx, id, session)
+func (tu *TodoUsecaseImpl) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) Todo {
+
+	return database.TenantQuery(tu.db, userContext.TenantId, func(session *gorm.DB) Todo {
+		return tu.todoService.FindById(ctx, userContext, id, session)
 	})
 }
 
