@@ -155,91 +155,68 @@ func TestTodoUsecaseImpl_Create(t *testing.T) {
 	}
 }
 
-// func TestTodoUsecaseImpl_Delete(t *testing.T) {
-// 	type fields struct {
-// 		todoService ITodoService
-// 		db          *gorm.DB
-// 	}
-// 	type args struct {
-// 		ctx         *gin.Context
-// 		userContext user.UserContext
-// 		id          uuid.UUID
-// 	}
-// 	tests := []struct {
-// 		name   string
-// 		fields fields
-// 		args   args
-// 	}{
-// 		// TODO: Add test cases.
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			tu := &TodoUsecaseImpl{
-// 				todoService: tt.fields.todoService,
-// 				db:          tt.fields.db,
-// 			}
-// 			tu.Delete(tt.args.ctx, tt.args.userContext, tt.args.id)
-// 		})
-// 	}
-// }
+func TestTodoUsecaseImpl_Delete(t *testing.T) {
+	// Given
+	testTenantId := uuid.New()
+	testUserId := uuid.New()
+	testUserContext := user.UserContext{
+		Id:        testUserId,
+		TenantId:  testTenantId,
+		Email:     "example@gmail.com",
+		LastName:  "LastName",
+		FirstName: "FirstName",
+		AccountId: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+	}
+	ctx := &gin.Context{}
+	serviceMock := &ITodoServiceMock{
+		DeleteFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) error {
+			// Do nothing
+			return nil
+		},
+	}
 
-// func TestTodoUsecaseImpl_FindAll(t *testing.T) {
-// 	type fields struct {
-// 		todoService ITodoService
-// 		db          *gorm.DB
-// 	}
-// 	type args struct {
-// 		ctx         *gin.Context
-// 		userContext user.UserContext
-// 	}
-// 	tests := []struct {
-// 		name   string
-// 		fields fields
-// 		args   args
-// 		want   []Todo
-// 	}{
-// 		// TODO: Add test cases.
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			tu := &TodoUsecaseImpl{
-// 				todoService: tt.fields.todoService,
-// 				db:          tt.fields.db,
-// 			}
-// 			if got := tu.FindAll(tt.args.ctx, tt.args.userContext); !reflect.DeepEqual(got, tt.want) {
-// 				t.Errorf("TodoUsecaseImpl.FindAll() = %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
+	mockDb, mock := GetNewDbMock()
 
-// func TestTodoUsecaseImpl_FindById(t *testing.T) {
-// 	type fields struct {
-// 		todoService ITodoService
-// 		db          *gorm.DB
-// 	}
-// 	type args struct {
-// 		ctx         *gin.Context
-// 		userContext user.UserContext
-// 		id          uuid.UUID
-// 	}
-// 	tests := []struct {
-// 		name   string
-// 		fields fields
-// 		args   args
-// 		want   Todo
-// 	}{
-// 		// TODO: Add test cases.
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			tu := &TodoUsecaseImpl{
-// 				todoService: tt.fields.todoService,
-// 				db:          tt.fields.db,
-// 			}
-// 			if got := tu.FindById(tt.args.ctx, tt.args.userContext, tt.args.id); !reflect.DeepEqual(got, tt.want) {
-// 				t.Errorf("TodoUsecaseImpl.FindById() = %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
+	type fields struct {
+		todoService *ITodoServiceMock
+		db          *gorm.DB
+	}
+	type args struct {
+		ctx         *gin.Context
+		userContext user.UserContext
+		id          uuid.UUID
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   error
+	}{
+		{
+			name: "正常: todo 削除",
+			fields: fields{
+				todoService: serviceMock,
+				db:          mockDb,
+			},
+			args: args{
+				ctx:         ctx,
+				userContext: testUserContext,
+				id:          uuid.New(),
+			},
+			want: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Then
+			usecase := todo.NewTodoUsecaseImpl(serviceMock, tt.fields.db)
+			mock.ExpectBegin()
+			mock.ExpectExec(fmt.Sprintf(`SET app.tenant_id = '%s';`, tt.args.userContext.TenantId.String())).WithoutArgs().WillReturnResult(sqlmock.NewResult(0, 0))
+			// mock.ExpectExec(regexp.QuoteMeta(`SET app.tenant_id = $1;`)).WithArgs(tt.args.userContext.TenantId.String()).WillReturnResult(sqlmock.NewResult(0, 0))
+			mock.ExpectCommit()
+			got := usecase.Delete(tt.args.ctx, tt.args.userContext, tt.args.id)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
