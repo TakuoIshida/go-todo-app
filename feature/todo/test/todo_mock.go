@@ -25,13 +25,13 @@ var _ todo.ITodoUsecase = &ITodoUsecaseMock{}
 //			CreateFunc: func(ctx *gin.Context, userContext user.UserContext, req todo.CreateTodoRequest) error {
 //				panic("mock out the Create method")
 //			},
-//			DeleteFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID)  {
+//			DeleteFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) error {
 //				panic("mock out the Delete method")
 //			},
-//			FindAllFunc: func(ctx *gin.Context, userContext user.UserContext) []todo.Todo {
+//			FindAllFunc: func(ctx *gin.Context, userContext user.UserContext) ([]todo.Todo, error) {
 //				panic("mock out the FindAll method")
 //			},
-//			FindByIdFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) todo.Todo {
+//			FindByIdFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) (todo.Todo, error) {
 //				panic("mock out the FindById method")
 //			},
 //		}
@@ -45,13 +45,13 @@ type ITodoUsecaseMock struct {
 	CreateFunc func(ctx *gin.Context, userContext user.UserContext, req todo.CreateTodoRequest) error
 
 	// DeleteFunc mocks the Delete method.
-	DeleteFunc func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID)
+	DeleteFunc func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) error
 
 	// FindAllFunc mocks the FindAll method.
-	FindAllFunc func(ctx *gin.Context, userContext user.UserContext) []todo.Todo
+	FindAllFunc func(ctx *gin.Context, userContext user.UserContext) ([]todo.Todo, error)
 
 	// FindByIdFunc mocks the FindById method.
-	FindByIdFunc func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) todo.Todo
+	FindByIdFunc func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) (todo.Todo, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -137,7 +137,7 @@ func (mock *ITodoUsecaseMock) CreateCalls() []struct {
 }
 
 // Delete calls DeleteFunc.
-func (mock *ITodoUsecaseMock) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) {
+func (mock *ITodoUsecaseMock) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) error {
 	if mock.DeleteFunc == nil {
 		panic("ITodoUsecaseMock.DeleteFunc: method is nil but ITodoUsecase.Delete was just called")
 	}
@@ -153,7 +153,7 @@ func (mock *ITodoUsecaseMock) Delete(ctx *gin.Context, userContext user.UserCont
 	mock.lockDelete.Lock()
 	mock.calls.Delete = append(mock.calls.Delete, callInfo)
 	mock.lockDelete.Unlock()
-	mock.DeleteFunc(ctx, userContext, id)
+	return mock.DeleteFunc(ctx, userContext, id)
 }
 
 // DeleteCalls gets all the calls that were made to Delete.
@@ -177,7 +177,7 @@ func (mock *ITodoUsecaseMock) DeleteCalls() []struct {
 }
 
 // FindAll calls FindAllFunc.
-func (mock *ITodoUsecaseMock) FindAll(ctx *gin.Context, userContext user.UserContext) []todo.Todo {
+func (mock *ITodoUsecaseMock) FindAll(ctx *gin.Context, userContext user.UserContext) ([]todo.Todo, error) {
 	if mock.FindAllFunc == nil {
 		panic("ITodoUsecaseMock.FindAllFunc: method is nil but ITodoUsecase.FindAll was just called")
 	}
@@ -213,7 +213,7 @@ func (mock *ITodoUsecaseMock) FindAllCalls() []struct {
 }
 
 // FindById calls FindByIdFunc.
-func (mock *ITodoUsecaseMock) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) todo.Todo {
+func (mock *ITodoUsecaseMock) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) (todo.Todo, error) {
 	if mock.FindByIdFunc == nil {
 		panic("ITodoUsecaseMock.FindByIdFunc: method is nil but ITodoUsecase.FindById was just called")
 	}
@@ -265,13 +265,13 @@ var _ todo.ITodoService = &ITodoServiceMock{}
 //			CreateFunc: func(ctx *gin.Context, userContext user.UserContext, t *todo.Todo, session *gorm.DB) error {
 //				panic("mock out the Create method")
 //			},
-//			DeleteFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB)  {
+//			DeleteFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) error {
 //				panic("mock out the Delete method")
 //			},
-//			FindAllFunc: func(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) []todo.Todo {
+//			FindAllFunc: func(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) ([]todo.Todo, error) {
 //				panic("mock out the FindAll method")
 //			},
-//			FindByIdFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) todo.Todo {
+//			FindByIdFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) (todo.Todo, error) {
 //				panic("mock out the FindById method")
 //			},
 //		}
@@ -285,13 +285,13 @@ type ITodoServiceMock struct {
 	CreateFunc func(ctx *gin.Context, userContext user.UserContext, t *todo.Todo, session *gorm.DB) error
 
 	// DeleteFunc mocks the Delete method.
-	DeleteFunc func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB)
+	DeleteFunc func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) error
 
 	// FindAllFunc mocks the FindAll method.
-	FindAllFunc func(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) []todo.Todo
+	FindAllFunc func(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) ([]todo.Todo, error)
 
 	// FindByIdFunc mocks the FindById method.
-	FindByIdFunc func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) todo.Todo
+	FindByIdFunc func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) (todo.Todo, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -389,7 +389,7 @@ func (mock *ITodoServiceMock) CreateCalls() []struct {
 }
 
 // Delete calls DeleteFunc.
-func (mock *ITodoServiceMock) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) {
+func (mock *ITodoServiceMock) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) error {
 	if mock.DeleteFunc == nil {
 		panic("ITodoServiceMock.DeleteFunc: method is nil but ITodoService.Delete was just called")
 	}
@@ -407,7 +407,7 @@ func (mock *ITodoServiceMock) Delete(ctx *gin.Context, userContext user.UserCont
 	mock.lockDelete.Lock()
 	mock.calls.Delete = append(mock.calls.Delete, callInfo)
 	mock.lockDelete.Unlock()
-	mock.DeleteFunc(ctx, userContext, id, session)
+	return mock.DeleteFunc(ctx, userContext, id, session)
 }
 
 // DeleteCalls gets all the calls that were made to Delete.
@@ -433,7 +433,7 @@ func (mock *ITodoServiceMock) DeleteCalls() []struct {
 }
 
 // FindAll calls FindAllFunc.
-func (mock *ITodoServiceMock) FindAll(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) []todo.Todo {
+func (mock *ITodoServiceMock) FindAll(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) ([]todo.Todo, error) {
 	if mock.FindAllFunc == nil {
 		panic("ITodoServiceMock.FindAllFunc: method is nil but ITodoService.FindAll was just called")
 	}
@@ -473,7 +473,7 @@ func (mock *ITodoServiceMock) FindAllCalls() []struct {
 }
 
 // FindById calls FindByIdFunc.
-func (mock *ITodoServiceMock) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) todo.Todo {
+func (mock *ITodoServiceMock) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) (todo.Todo, error) {
 	if mock.FindByIdFunc == nil {
 		panic("ITodoServiceMock.FindByIdFunc: method is nil but ITodoService.FindById was just called")
 	}
@@ -529,13 +529,13 @@ var _ todo.ITodoRepository = &ITodoRepositoryMock{}
 //			CreateFunc: func(ctx *gin.Context, userContext user.UserContext, t *todo.Todo, session *gorm.DB) error {
 //				panic("mock out the Create method")
 //			},
-//			DeleteFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB)  {
+//			DeleteFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) error {
 //				panic("mock out the Delete method")
 //			},
-//			FindAllFunc: func(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) []todo.Todo {
+//			FindAllFunc: func(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) ([]todo.Todo, error) {
 //				panic("mock out the FindAll method")
 //			},
-//			FindByIdFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) todo.Todo {
+//			FindByIdFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) (todo.Todo, error) {
 //				panic("mock out the FindById method")
 //			},
 //		}
@@ -549,13 +549,13 @@ type ITodoRepositoryMock struct {
 	CreateFunc func(ctx *gin.Context, userContext user.UserContext, t *todo.Todo, session *gorm.DB) error
 
 	// DeleteFunc mocks the Delete method.
-	DeleteFunc func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB)
+	DeleteFunc func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) error
 
 	// FindAllFunc mocks the FindAll method.
-	FindAllFunc func(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) []todo.Todo
+	FindAllFunc func(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) ([]todo.Todo, error)
 
 	// FindByIdFunc mocks the FindById method.
-	FindByIdFunc func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) todo.Todo
+	FindByIdFunc func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) (todo.Todo, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -653,7 +653,7 @@ func (mock *ITodoRepositoryMock) CreateCalls() []struct {
 }
 
 // Delete calls DeleteFunc.
-func (mock *ITodoRepositoryMock) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) {
+func (mock *ITodoRepositoryMock) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) error {
 	if mock.DeleteFunc == nil {
 		panic("ITodoRepositoryMock.DeleteFunc: method is nil but ITodoRepository.Delete was just called")
 	}
@@ -671,7 +671,7 @@ func (mock *ITodoRepositoryMock) Delete(ctx *gin.Context, userContext user.UserC
 	mock.lockDelete.Lock()
 	mock.calls.Delete = append(mock.calls.Delete, callInfo)
 	mock.lockDelete.Unlock()
-	mock.DeleteFunc(ctx, userContext, id, session)
+	return mock.DeleteFunc(ctx, userContext, id, session)
 }
 
 // DeleteCalls gets all the calls that were made to Delete.
@@ -697,7 +697,7 @@ func (mock *ITodoRepositoryMock) DeleteCalls() []struct {
 }
 
 // FindAll calls FindAllFunc.
-func (mock *ITodoRepositoryMock) FindAll(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) []todo.Todo {
+func (mock *ITodoRepositoryMock) FindAll(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) ([]todo.Todo, error) {
 	if mock.FindAllFunc == nil {
 		panic("ITodoRepositoryMock.FindAllFunc: method is nil but ITodoRepository.FindAll was just called")
 	}
@@ -737,7 +737,7 @@ func (mock *ITodoRepositoryMock) FindAllCalls() []struct {
 }
 
 // FindById calls FindByIdFunc.
-func (mock *ITodoRepositoryMock) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) todo.Todo {
+func (mock *ITodoRepositoryMock) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) (todo.Todo, error) {
 	if mock.FindByIdFunc == nil {
 		panic("ITodoRepositoryMock.FindByIdFunc: method is nil but ITodoRepository.FindById was just called")
 	}
