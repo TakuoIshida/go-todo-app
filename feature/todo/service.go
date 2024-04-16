@@ -24,17 +24,17 @@ func (t *TodoServiceImpl) Create(ctx *gin.Context, userContext user.UserContext,
 }
 
 // Delete implements TodoService
-func (t *TodoServiceImpl) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) {
-	t.TodoRepository.Delete(ctx, userContext, id, session)
+func (t *TodoServiceImpl) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) error {
+	return t.TodoRepository.Delete(ctx, userContext, id, session)
 }
 
 // FindAll implements TodoService
-func (t *TodoServiceImpl) FindAll(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) []Todo {
+func (t *TodoServiceImpl) FindAll(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) ([]Todo, error) {
 	return t.TodoRepository.FindAll(ctx, userContext, session)
 }
 
 // FindById implements TodoService
-func (t *TodoServiceImpl) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) Todo {
+func (t *TodoServiceImpl) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) (Todo, error) {
 	return t.TodoRepository.FindById(ctx, userContext, id, session)
 }
 

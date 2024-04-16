@@ -34,24 +34,23 @@ func (tu *TodoUsecaseImpl) Create(ctx *gin.Context, userContext user.UserContext
 }
 
 // Delete implements TodoService
-func (tu *TodoUsecaseImpl) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) {
-	database.TenantTx(tu.db, userContext.TenantId, func(session *gorm.DB) error {
-		tu.todoService.Delete(ctx, userContext, id, session)
-		return nil
+func (tu *TodoUsecaseImpl) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) error {
+	return database.TenantTx(tu.db, userContext.TenantId, func(session *gorm.DB) error {
+		return tu.todoService.Delete(ctx, userContext, id, session)
 	})
 }
 
 // FindAll implements TodoService
-func (tu *TodoUsecaseImpl) FindAll(ctx *gin.Context, userContext user.UserContext) []Todo {
-	return database.TenantQuery(tu.db, userContext.TenantId, func(session *gorm.DB) []Todo {
+func (tu *TodoUsecaseImpl) FindAll(ctx *gin.Context, userContext user.UserContext) ([]Todo, error) {
+	return database.TenantQuery(tu.db, userContext.TenantId, func(session *gorm.DB) ([]Todo, error) {
 		return tu.todoService.FindAll(ctx, userContext, session)
 	})
 }
 
 // FindById implements TodoService
-func (tu *TodoUsecaseImpl) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) Todo {
+func (tu *TodoUsecaseImpl) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) (Todo, error) {
 
-	return database.TenantQuery(tu.db, userContext.TenantId, func(session *gorm.DB) Todo {
+	return database.TenantQuery(tu.db, userContext.TenantId, func(session *gorm.DB) (Todo, error) {
 		return tu.todoService.FindById(ctx, userContext, id, session)
 	})
 }

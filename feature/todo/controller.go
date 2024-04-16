@@ -31,7 +31,11 @@ func (tc *TodoControllerImpl) FindById(ctx *gin.Context) {
 		return
 	}
 
-	todo := tc.TodoUsecase.FindById(ctx, userContext, id)
+	todo, err := tc.TodoUsecase.FindById(ctx, userContext, id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	ctx.JSON(http.StatusOK, todo)
 }
 
@@ -42,7 +46,11 @@ func (tc *TodoControllerImpl) FindList(ctx *gin.Context) {
 		return
 	}
 
-	todoList := tc.TodoUsecase.FindAll(ctx, userContext)
+	todoList, err := tc.TodoUsecase.FindAll(ctx, userContext)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	ctx.JSON(http.StatusOK, todoList)
 }
 

@@ -2,6 +2,7 @@ package todo_test
 
 import (
 	"errors"
+	"fmt"
 	"go-todo-app/feature/todo"
 	"go-todo-app/feature/user"
 	"testing"
@@ -40,7 +41,7 @@ func TestTodoUsecaseImpl_Create(t *testing.T) {
 		},
 	}
 
-	mockDb, _ := GetNewDbMock()
+	mockDb, mock := GetNewDbMock()
 
 	type fields struct {
 		todoService *ITodoServiceMock
@@ -143,6 +144,9 @@ func TestTodoUsecaseImpl_Create(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Then
 			usecase := todo.NewTodoUsecaseImpl(serviceMock, tt.fields.db)
+			mock.ExpectBegin()
+			mock.ExpectExec(fmt.Sprintf("SET app.tenant_id = '%s';", tt.args.userContext.TenantId.String())).WillReturnResult(nil)
+			mock.ExpectCommit()
 			got := usecase.Create(tt.args.ctx, tt.args.userContext, tt.args.req)
 			assert.Equal(t, tt.want, got)
 		})

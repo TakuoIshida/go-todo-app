@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"go-todo-app/shared/database/config"
 
@@ -42,34 +43,38 @@ func NewClientConnector() *DBClientConnector {
 	}
 }
 
-func TenantTx[T any](db *gorm.DB, tenantId uuid.UUID, callback func(session *gorm.DB) T) T {
+func TenantTx(db *gorm.DB, tenantId uuid.UUID, callback func(session *gorm.DB) error) error {
 	db.Config.NamingStrategy = schema.NamingStrategy{
 		TablePrefix: "tenant.",
 	}
 	// Set the tenant ID for RLS using the context option
-	var result T
-	db.Transaction(func(session *gorm.DB) error {
+	return db.Transaction(func(session *gorm.DB) error {
 		// escapeをするとsyntaxエラーになるため、Sprintfで対応。
 		session.Exec(fmt.Sprintf("SET app.tenant_id = '%s';", tenantId.String()))
-		result = callback(session)
+		err := callback(session)
+		if err != nil {
+			return errors.New("error in TenantTx: rollback. message: " + err.Error())
+		}
 		return nil
 	})
-
-	return result
 }
 
-func TenantQuery[T any](db *gorm.DB, tenantId uuid.UUID, callback func(session *gorm.DB) T) T {
+func TenantQuery[T any](db *gorm.DB, tenantId uuid.UUID, callback func(session *gorm.DB) (T, error)) (T, error) {
 	db.Config.NamingStrategy = schema.NamingStrategy{
 		TablePrefix: "tenant.",
 	}
 	// Set the tenant ID for RLS using the context option
 	var result T
+	var err error
 	db.Connection(func(session *gorm.DB) error {
 		// escapeをするとsyntaxエラーになるため、Sprintfで対応。
 		session.Exec(fmt.Sprintf("SET app.tenant_id = '%s';", tenantId.String()))
-		result = callback(session)
-		return nil
+		result, err = callback(session)
+		if err != nil {
+			return errors.New("error in TenantQuery")
+		}
+		return err
 	})
 
-	return result
+	return result, err
 }
