@@ -18,9 +18,12 @@ func NewTodoRepositoryImpl() ITodoRepository {
 }
 
 // Create implements TodoRepository
-func (t *TodoRepositoryImpl) Create(ctx *gin.Context, userContext user.UserContext, todo *Todo, session *gorm.DB) {
+func (t *TodoRepositoryImpl) Create(ctx *gin.Context, userContext user.UserContext, todo *Todo, session *gorm.DB) error {
 	result := session.Create(&todo)
-	helper.ErrorPanic(result.Error)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
 
 // Delete implements TodoRepository

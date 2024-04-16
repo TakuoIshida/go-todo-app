@@ -15,7 +15,7 @@ type CreateTodoRequest struct {
 }
 
 type ITodoUsecase interface {
-	Create(ctx *gin.Context, userContext user.UserContext, req CreateTodoRequest)
+	Create(ctx *gin.Context, userContext user.UserContext, req CreateTodoRequest) error
 	// Update(ctx *gin.Context, todo request.UpdatetodoRequest)
 	Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID)
 	FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID) Todo
@@ -23,7 +23,7 @@ type ITodoUsecase interface {
 }
 
 type ITodoService interface {
-	Create(ctx *gin.Context, userContext user.UserContext, t *Todo, session *gorm.DB)
+	Create(ctx *gin.Context, userContext user.UserContext, t *Todo, session *gorm.DB) error
 	// Update(ctx *gin.Context, todo request.UpdatetodoRequest)
 	Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB)
 	FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) Todo
@@ -31,7 +31,7 @@ type ITodoService interface {
 }
 
 type ITodoRepository interface {
-	Create(ctx *gin.Context, userContext user.UserContext, t *Todo, session *gorm.DB)
+	Create(ctx *gin.Context, userContext user.UserContext, t *Todo, session *gorm.DB) error
 	// Update(ctx *gin.Context, todo Todo)
 	Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB)
 	FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) Todo

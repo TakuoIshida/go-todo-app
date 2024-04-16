@@ -1,12 +1,14 @@
 package todo_test
 
 import (
+	"errors"
 	"go-todo-app/feature/todo"
 	"go-todo-app/feature/user"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
@@ -24,21 +26,70 @@ func TestTodoUsecaseImpl_Create(t *testing.T) {
 	}
 	ctx := &gin.Context{}
 	serviceMock := &ITodoServiceMock{
-		CreateFunc: func(ctx *gin.Context, userContext user.UserContext, t *todo.Todo, session *gorm.DB) {
+		CreateFunc: func(ctx *gin.Context, userContext user.UserContext, t *todo.Todo, session *gorm.DB) error {
 			// Do nothing
+			return nil
 		},
 	}
-	req := todo.CreateTodoRequest{
-		Title:       "Title",
-		Description: "Description",
+
+	mockDb, _ := GetNewDbMock()
+
+	type fields struct {
+		todoService *ITodoServiceMock
+		db          *gorm.DB
 	}
-	db, _ := GetNewDbMock()
-	usecase := todo.NewTodoUsecaseImpl(serviceMock, db)
-	// When
-	t.Run("正常: todo 作成", func(t *testing.T) {
-		// Then
-		usecase.Create(ctx, testUserContext, req)
-	})
+	type args struct {
+		ctx         *gin.Context
+		userContext user.UserContext
+		req         todo.CreateTodoRequest
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   error
+	}{
+		{
+			name: "正常: todo 作成",
+			fields: fields{
+				todoService: serviceMock,
+				db:          mockDb,
+			},
+			args: args{
+				ctx:         ctx,
+				userContext: testUserContext,
+				req: todo.CreateTodoRequest{
+					Title:       "Title",
+					Description: "Description",
+				},
+			},
+			want: nil,
+		},
+		{
+			name: "異常: titleが空",
+			fields: fields{
+				todoService: serviceMock,
+				db:          mockDb,
+			},
+			args: args{
+				ctx:         ctx,
+				userContext: testUserContext,
+				req: todo.CreateTodoRequest{
+					Title:       "",
+					Description: "Description",
+				},
+			},
+			want: errors.New("title is required"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Then
+			usecase := todo.NewTodoUsecaseImpl(serviceMock, tt.fields.db)
+			got := usecase.Create(tt.args.ctx, tt.args.userContext, tt.args.req)
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }
 
 // func TestTodoUsecaseImpl_Delete(t *testing.T) {

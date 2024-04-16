@@ -19,8 +19,8 @@ func NewTodoServiceImpl(tr ITodoRepository) ITodoService {
 }
 
 // Create implements TodoService
-func (t *TodoServiceImpl) Create(ctx *gin.Context, userContext user.UserContext, todo *Todo, session *gorm.DB) {
-	t.TodoRepository.Create(ctx, userContext, todo, session)
+func (t *TodoServiceImpl) Create(ctx *gin.Context, userContext user.UserContext, todo *Todo, session *gorm.DB) error {
+	return t.TodoRepository.Create(ctx, userContext, todo, session)
 }
 
 // Delete implements TodoService
