@@ -72,7 +72,7 @@ func TenantQuery[T any](db *gorm.DB, tenantId uuid.UUID, callback func(session *
 		session.Exec(fmt.Sprintf("SET app.tenant_id = '%s';", tenantId.String()))
 		result, err = callback(session)
 		if err != nil {
-			return errors.New("error in TenantQuery")
+			return errors.New("error in TenantQuery" + err.Error())
 		}
 		return err
 	})
