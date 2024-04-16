@@ -51,6 +51,7 @@ func TenantTx(db *gorm.DB, tenantId uuid.UUID, callback func(session *gorm.DB) e
 	return db.Transaction(func(session *gorm.DB) error {
 		// escapeをするとsyntaxエラーになるため、Sprintfで対応。
 		session.Exec(fmt.Sprintf("SET app.tenant_id = '%s';", tenantId.String()))
+		// session.Exec("SET app.tenant_id = $1;", tenantId.String())
 		err := callback(session)
 		if err != nil {
 			return errors.New("error in TenantTx: rollback. message: " + err.Error())

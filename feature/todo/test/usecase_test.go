@@ -7,6 +7,7 @@ import (
 	"go-todo-app/feature/user"
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -145,7 +146,8 @@ func TestTodoUsecaseImpl_Create(t *testing.T) {
 			// Then
 			usecase := todo.NewTodoUsecaseImpl(serviceMock, tt.fields.db)
 			mock.ExpectBegin()
-			mock.ExpectExec(fmt.Sprintf("SET app.tenant_id = '%s';", tt.args.userContext.TenantId.String())).WillReturnResult(nil)
+			mock.ExpectExec(fmt.Sprintf(`SET app.tenant_id = '%s';`, tt.args.userContext.TenantId.String())).WithoutArgs().WillReturnResult(sqlmock.NewResult(0, 0))
+			// mock.ExpectExec(regexp.QuoteMeta(`SET app.tenant_id = $1;`)).WithArgs(tt.args.userContext.TenantId.String()).WillReturnResult(sqlmock.NewResult(0, 0))
 			mock.ExpectCommit()
 			got := usecase.Create(tt.args.ctx, tt.args.userContext, tt.args.req)
 			assert.Equal(t, tt.want, got)
