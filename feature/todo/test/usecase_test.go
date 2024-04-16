@@ -12,6 +12,14 @@ import (
 	"gorm.io/gorm"
 )
 
+func generateMaxLenStr() string {
+	str := ""
+	for i := 0; i < 256; i++ {
+		str += "a"
+	}
+	return str
+}
+
 func TestTodoUsecaseImpl_Create(t *testing.T) {
 	// Given
 	testTenantId := uuid.New()
@@ -81,7 +89,56 @@ func TestTodoUsecaseImpl_Create(t *testing.T) {
 			},
 			want: errors.New("title is required"),
 		},
+		{
+			name: "異常: Descriptionが空",
+			fields: fields{
+				todoService: serviceMock,
+				db:          mockDb,
+			},
+			args: args{
+				ctx:         ctx,
+				userContext: testUserContext,
+				req: todo.CreateTodoRequest{
+					Title:       "Title",
+					Description: "",
+				},
+			},
+			want: errors.New("description is required"),
+		},
+		{
+			name: "異常: Titleが長すぎる",
+			fields: fields{
+				todoService: serviceMock,
+				db:          mockDb,
+			},
+			args: args{
+				ctx:         ctx,
+				userContext: testUserContext,
+				req: todo.CreateTodoRequest{
+					Title:       generateMaxLenStr(),
+					Description: "Description",
+				},
+			},
+			want: errors.New("title is too long"),
+		},
+		{
+			name: "異常: Descriptionが長すぎる",
+			fields: fields{
+				todoService: serviceMock,
+				db:          mockDb,
+			},
+			args: args{
+				ctx:         ctx,
+				userContext: testUserContext,
+				req: todo.CreateTodoRequest{
+					Title:       "Title",
+					Description: generateMaxLenStr(),
+				},
+			},
+			want: errors.New("description is too long"),
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Then

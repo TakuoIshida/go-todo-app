@@ -27,9 +27,9 @@ func (tu *TodoUsecaseImpl) Create(ctx *gin.Context, userContext user.UserContext
 	if err != nil {
 		return err
 	}
+
 	return database.TenantTx(tu.db, userContext.TenantId, func(session *gorm.DB) error {
-		tu.todoService.Create(ctx, userContext, new, session)
-		return nil
+		return tu.todoService.Create(ctx, userContext, new, session)
 	})
 }
 

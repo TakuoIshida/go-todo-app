@@ -47,14 +47,14 @@ func validate(t *Todo) error {
 	if t.Title == "" {
 		return errors.New("title is required")
 	}
+	if t.Description == "" {
+		return errors.New("description is required")
+	}
 	if len(t.Title) > MAX_LENGTH {
 		return errors.New("title is too long")
 	}
 	if len(t.Description) > MAX_LENGTH {
 		return errors.New("description is too long")
-	}
-	if t.Description == "" {
-		return errors.New("description is required")
 	}
 
 	return nil
