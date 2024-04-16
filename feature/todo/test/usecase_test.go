@@ -145,7 +145,7 @@ func TestTodoUsecaseImpl_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Then
-			usecase := todo.NewTodoUsecaseImpl(serviceMock, tt.fields.db)
+			usecase := todo.NewTodoUsecaseImpl(tt.fields.todoService, tt.fields.db)
 			mock.ExpectBegin()
 			mock.ExpectExec(fmt.Sprintf(`SET app.tenant_id = '%s';`, tt.args.userContext.TenantId.String())).WithoutArgs().WillReturnResult(sqlmock.NewResult(0, 0))
 			// mock.ExpectExec(regexp.QuoteMeta(`SET app.tenant_id = $1;`)).WithArgs(tt.args.userContext.TenantId.String()).WillReturnResult(sqlmock.NewResult(0, 0))
@@ -154,9 +154,9 @@ func TestTodoUsecaseImpl_Create(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 
 			// verify
-			// if tt.want == nil {
-			// 	assert.Len(t, tt.fields.todoService.CreateFunc, 1)
-			// }
+			if tt.want == nil {
+				assert.Equal(t, len(tt.fields.todoService.calls.Create), 1)
+			}
 		})
 	}
 }
@@ -216,7 +216,7 @@ func TestTodoUsecaseImpl_Delete(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Then
-			usecase := todo.NewTodoUsecaseImpl(serviceMock, tt.fields.db)
+			usecase := todo.NewTodoUsecaseImpl(tt.fields.todoService, tt.fields.db)
 			mock.ExpectBegin()
 			mock.ExpectExec(fmt.Sprintf(`SET app.tenant_id = '%s';`, tt.args.userContext.TenantId.String())).WithoutArgs().WillReturnResult(sqlmock.NewResult(0, 0))
 			// mock.ExpectExec(regexp.QuoteMeta(`SET app.tenant_id = $1;`)).WithArgs(tt.args.userContext.TenantId.String()).WillReturnResult(sqlmock.NewResult(0, 0))
@@ -224,6 +224,10 @@ func TestTodoUsecaseImpl_Delete(t *testing.T) {
 			got := usecase.Delete(tt.args.ctx, tt.args.userContext, tt.args.id)
 			assert.Equal(t, tt.want, got)
 
+			// verify
+			if tt.want == nil {
+				assert.Equal(t, len(tt.fields.todoService.calls.Delete), 1)
+			}
 		})
 	}
 }
@@ -240,8 +244,9 @@ func TestTodoUsecaseImpl_FindById(t *testing.T) {
 		FirstName: "FirstName",
 		AccountId: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
 	}
+	testTodoId := uuid.New()
 	testTodo := todo.Todo{
-		Id:           uuid.New(),
+		Id:           testTodoId,
 		TenantId:     testTenantId,
 		Title:        "Title",
 		Description:  "Description",
@@ -256,6 +261,13 @@ func TestTodoUsecaseImpl_FindById(t *testing.T) {
 		FindByIdFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) (todo.Todo, error) {
 			// Do nothing
 			return testTodo, nil
+		},
+	}
+	notFoundServiceMock := &ITodoServiceMock{
+		FindByIdFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) (todo.Todo, error) {
+			// Do nothing
+			err := errors.New("Todo not found.")
+			return todo.Todo{}, err
 		},
 	}
 
@@ -286,22 +298,36 @@ func TestTodoUsecaseImpl_FindById(t *testing.T) {
 			args: args{
 				ctx:         ctx,
 				userContext: testUserContext,
-				id:          uuid.New(),
+				id:          testTodoId,
 			},
 			want: testTodo,
 			err:  nil,
+		},
+		{
+			name: "異常: todo 取得できなかった場合",
+			fields: fields{
+				todoService: notFoundServiceMock,
+				db:          mockDb,
+			},
+			args: args{
+				ctx:         ctx,
+				userContext: testUserContext,
+				id:          uuid.New(),
+			},
+			want: todo.Todo{},
+			err:  errors.New("Todo not found."),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Then
-			usecase := todo.NewTodoUsecaseImpl(serviceMock, tt.fields.db)
+			usecase := todo.NewTodoUsecaseImpl(tt.fields.todoService, tt.fields.db)
 			mock.ExpectExec(fmt.Sprintf(`SET app.tenant_id = '%s';`, tt.args.userContext.TenantId.String())).WithoutArgs().WillReturnResult(sqlmock.NewResult(0, 0))
-			// mock.ExpectExec(regexp.QuoteMeta(`SET app.tenant_id = $1;`)).WithArgs(tt.args.userContext.TenantId.String()).WillReturnResult(sqlmock.NewResult(0, 0))
 			got, err := usecase.FindById(tt.args.ctx, tt.args.userContext, tt.args.id)
 			assert.Equal(t, tt.want, got)
 			assert.Equal(t, tt.err, err)
+			assert.Equal(t, len(tt.fields.todoService.calls.FindById), 1)
 		})
 	}
 }
