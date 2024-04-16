@@ -6,6 +6,7 @@ import (
 	"go-todo-app/feature/todo"
 	"go-todo-app/feature/user"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
@@ -151,6 +152,11 @@ func TestTodoUsecaseImpl_Create(t *testing.T) {
 			mock.ExpectCommit()
 			got := usecase.Create(tt.args.ctx, tt.args.userContext, tt.args.req)
 			assert.Equal(t, tt.want, got)
+
+			// verify
+			// if tt.want == nil {
+			// 	assert.Len(t, tt.fields.todoService.CreateFunc, 1)
+			// }
 		})
 	}
 }
@@ -217,6 +223,85 @@ func TestTodoUsecaseImpl_Delete(t *testing.T) {
 			mock.ExpectCommit()
 			got := usecase.Delete(tt.args.ctx, tt.args.userContext, tt.args.id)
 			assert.Equal(t, tt.want, got)
+
+		})
+	}
+}
+
+func TestTodoUsecaseImpl_FindById(t *testing.T) {
+	// Given
+	testTenantId := uuid.New()
+	testUserId := uuid.New()
+	testUserContext := user.UserContext{
+		Id:        testUserId,
+		TenantId:  testTenantId,
+		Email:     "example@gmail.com",
+		LastName:  "LastName",
+		FirstName: "FirstName",
+		AccountId: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+	}
+	testTodo := todo.Todo{
+		Id:           uuid.New(),
+		TenantId:     testTenantId,
+		Title:        "Title",
+		Description:  "Description",
+		IsDeleted:    false,
+		CreatedAt:    time.Now(),
+		CreateUserId: testUserId,
+		UpdatedAt:    time.Now(),
+		UpdateUserId: testUserId,
+	}
+	ctx := &gin.Context{}
+	serviceMock := &ITodoServiceMock{
+		FindByIdFunc: func(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) (todo.Todo, error) {
+			// Do nothing
+			return testTodo, nil
+		},
+	}
+
+	mockDb, mock := GetNewDbMock()
+
+	type fields struct {
+		todoService *ITodoServiceMock
+		db          *gorm.DB
+	}
+	type args struct {
+		ctx         *gin.Context
+		userContext user.UserContext
+		id          uuid.UUID
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   todo.Todo
+		err    error
+	}{
+		{
+			name: "正常: todo 取得",
+			fields: fields{
+				todoService: serviceMock,
+				db:          mockDb,
+			},
+			args: args{
+				ctx:         ctx,
+				userContext: testUserContext,
+				id:          uuid.New(),
+			},
+			want: testTodo,
+			err:  nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Then
+			usecase := todo.NewTodoUsecaseImpl(serviceMock, tt.fields.db)
+			mock.ExpectExec(fmt.Sprintf(`SET app.tenant_id = '%s';`, tt.args.userContext.TenantId.String())).WithoutArgs().WillReturnResult(sqlmock.NewResult(0, 0))
+			// mock.ExpectExec(regexp.QuoteMeta(`SET app.tenant_id = $1;`)).WithArgs(tt.args.userContext.TenantId.String()).WillReturnResult(sqlmock.NewResult(0, 0))
+			got, err := usecase.FindById(tt.args.ctx, tt.args.userContext, tt.args.id)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.err, err)
 		})
 	}
 }
