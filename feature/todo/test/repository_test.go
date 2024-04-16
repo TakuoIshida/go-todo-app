@@ -1,7 +1,7 @@
 package todo_test
 
 import (
-	"fmt"
+	"errors"
 	"go-todo-app/feature/todo"
 	"go-todo-app/feature/user"
 	"regexp"
@@ -11,6 +11,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
@@ -42,71 +43,55 @@ func TestTodoRepositoryImpl_Create(t *testing.T) {
 		UpdateUserId: testUserId,
 	}
 	repository := todo.NewTodoRepositoryImpl()
-	type args struct {
-		ctx         *gin.Context
-		userContext user.UserContext
-		todo        todo.Todo
-		session     *gorm.DB
-	}
-	tests := []struct {
-		name string
-		tr   todo.ITodoRepository
-		args args
-		want error
-	}{
-		{
-			name: "正常： Todo作成成功",
-			tr:   repository,
-			args: args{
-				ctx:         ctx,
-				userContext: testUserContext,
-				todo:        testTodo,
-				session:     mockDb,
-			},
-			want: nil,
-		},
-		// {
-		// 	name: "異常： Todo作成失敗",
-		// 	tr:   repository,
-		// 	args: args{
-		// 		ctx:         ctx,
-		// 		userContext: testUserContext,
-		// 		todo:        testTodo,
-		// 		session:     mockDb,
-		// 	},
-		// 	want: nil,
-		// },
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mock.ExpectBegin()
-			mock.ExpectExec(fmt.Sprintf(`SET app.tenant_id = '%s';`, tt.args.userContext.TenantId.String())).WithoutArgs().WillReturnResult(sqlmock.NewResult(0, 0))
-			mock.ExpectCommit()
 
-			// tt.args.session.Create(&tt.args.todo)
-			tt.tr.Create(tt.args.ctx, tt.args.userContext, &tt.args.todo, tt.args.session)
+	t.Run("正常： Todo作成成功", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(
+			regexp.QuoteMeta(`INSERT INTO "todos"`)).WithArgs(
+			testTodo.Id,
+			testTodo.TenantId,
+			testTodo.Title,
+			testTodo.Description,
+			testTodo.IsDeleted,
+			testTodo.CreatedAt,
+			testTodo.CreateUserId,
+			testTodo.UpdatedAt,
+			testTodo.UpdateUserId,
+		).WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
 
-			mock.ExpectExec(
-				regexp.QuoteMeta(
-					`SET app.tenant_id = $1;`+
-						`INSERT INTO todos ("id", "tenant_id", "title", "description", "is_deleted", "created_at", "create_user_id",
-				"updated_at", "update_user_id")
-VALUES ($2, $3, $4, $5, $6, $7, $8, $9, $10);`)).WithArgs(
-				testTodo.TenantId,
-				testTodo.CreateUserId,
-				testTodo.UpdateUserId,
-				testTodo.CreatedAt,
-				testTodo.UpdatedAt,
-				testTodo.TenantId,
-				testTodo.Id,
-				testTodo.Title,
-				testTodo.Description,
-				testTodo.IsDeleted,
-			).WillReturnResult(sqlmock.NewResult(0, 0))
+		got := repository.Create(ctx, testUserContext, &testTodo, mockDb)
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+		assert.Nil(t, got)
+	})
 
-			// assert.Equal(t, tt.want, got)
-		})
-	}
+	t.Run("異常： Todo作成失敗", func(t *testing.T) {
+		mock.ExpectBegin()
+		mock.ExpectExec(
+			regexp.QuoteMeta(`INSERT INTO "todos"`)).WithArgs(
+			testTodo.Id,
+			testTodo.TenantId,
+			testTodo.Title,
+			testTodo.Description,
+			testTodo.IsDeleted,
+			testTodo.CreatedAt,
+			testTodo.CreateUserId,
+			testTodo.UpdatedAt,
+			testTodo.UpdateUserId,
+		).WillReturnError(errors.New("fail to create todo"))
+		mock.ExpectRollback()
+
+		got := repository.Create(ctx, testUserContext, &testTodo, mockDb)
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+
+		if assert.Error(t, got) {
+			assert.Equal(t, "fail to create todo", got.Error())
+		}
+	})
 }
 
 func TestTodoRepositoryImpl_FindById(t *testing.T) {
