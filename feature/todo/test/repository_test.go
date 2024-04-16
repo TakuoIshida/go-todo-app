@@ -150,6 +150,22 @@ func TestTodoRepositoryImpl_FindById(t *testing.T) {
 			t.Errorf("there were unfulfilled expectations: %s", err)
 		}
 	})
+
+	t.Run("異常：todoを取得でエラー", func(t *testing.T) {
+		mock.ExpectQuery(
+			regexp.QuoteMeta(`SELECT * FROM "todos"`)).WithArgs(
+			testTodo.Id,
+		).WillReturnError(errors.New("fail to find todo"))
+
+		_, err := repository.FindById(ctx, testUserContext, testTodoId, mockDb)
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+
+		if assert.Error(t, err) {
+			assert.Equal(t, "Todo not found. message: fail to find todo", err.Error())
+		}
+	})
 }
 
 func TestTodoRepositoryImpl_FindAll(t *testing.T) {
