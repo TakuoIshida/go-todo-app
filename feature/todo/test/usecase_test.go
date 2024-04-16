@@ -331,3 +331,113 @@ func TestTodoUsecaseImpl_FindById(t *testing.T) {
 		})
 	}
 }
+
+func TestTodoUsecaseImpl_FindAll(t *testing.T) {
+	// Given
+	testTenantId := uuid.New()
+	testUserId := uuid.New()
+	testUserContext := user.UserContext{
+		Id:        testUserId,
+		TenantId:  testTenantId,
+		Email:     "example@gmail.com",
+		LastName:  "LastName",
+		FirstName: "FirstName",
+		AccountId: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
+	}
+	testTodoId := uuid.New()
+	testTodoId2 := uuid.New()
+	testTodos := []todo.Todo{
+		{
+			Id:           testTodoId,
+			TenantId:     testTenantId,
+			Title:        "Title",
+			Description:  "Description",
+			IsDeleted:    false,
+			CreatedAt:    time.Now(),
+			CreateUserId: testUserId,
+			UpdatedAt:    time.Now(),
+			UpdateUserId: testUserId,
+		},
+		{
+			Id:           testTodoId2,
+			TenantId:     testTenantId,
+			Title:        "Title2",
+			Description:  "Description2",
+			IsDeleted:    false,
+			CreatedAt:    time.Now(),
+			CreateUserId: testUserId,
+			UpdatedAt:    time.Now(),
+			UpdateUserId: testUserId,
+		},
+	}
+	ctx := &gin.Context{}
+	serviceMock := &ITodoServiceMock{
+		FindAllFunc: func(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) ([]todo.Todo, error) {
+			// Do nothing
+			return testTodos, nil
+		},
+	}
+	emptyServiceMock := &ITodoServiceMock{
+		FindAllFunc: func(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) ([]todo.Todo, error) {
+			// Do nothing
+			return []todo.Todo{}, nil
+		},
+	}
+
+	mockDb, mock := GetNewDbMock()
+
+	type fields struct {
+		todoService *ITodoServiceMock
+		db          *gorm.DB
+	}
+	type args struct {
+		ctx         *gin.Context
+		userContext user.UserContext
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   []todo.Todo
+		err    error
+	}{
+		{
+			name: "正常: todoList 取得",
+			fields: fields{
+				todoService: serviceMock,
+				db:          mockDb,
+			},
+			args: args{
+				ctx:         ctx,
+				userContext: testUserContext,
+			},
+			want: testTodos,
+			err:  nil,
+		},
+		{
+			name: "正常: todoListが空の場合",
+			fields: fields{
+				todoService: emptyServiceMock,
+				db:          mockDb,
+			},
+			args: args{
+				ctx:         ctx,
+				userContext: testUserContext,
+			},
+			want: []todo.Todo{},
+			err:  nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Then
+			usecase := todo.NewTodoUsecaseImpl(tt.fields.todoService, tt.fields.db)
+			mock.ExpectExec(fmt.Sprintf(`SET app.tenant_id = '%s';`, tt.args.userContext.TenantId.String())).WithoutArgs().WillReturnResult(sqlmock.NewResult(0, 0))
+			got, err := usecase.FindAll(tt.args.ctx, tt.args.userContext)
+			assert.Equal(t, tt.want, got)
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, len(tt.fields.todoService.calls.FindAll), 1)
+		})
+	}
+}
