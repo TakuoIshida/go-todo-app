@@ -3,21 +3,12 @@
 version: "3.9"
 services:
   db:
-    image: postgres:13-alpine
+    image: postgres:16-alpine
     container_name: "local-db"
     env_file:
       - ./.env
     ports:
       - "$POSTGRES_PORT:5432"
-    volumes:
-      - ./postgres/:/docker-entrypoint-initdb.d
-  db-latest:
-    image: postgres:16-alpine
-    container_name: "local-db-latest"
-    env_file:
-      - ./.env
-    ports:
-      - "$POSTGRES_PORT_LATEST:5432"
     volumes:
       - ./postgres/:/docker-entrypoint-initdb.d
   web:

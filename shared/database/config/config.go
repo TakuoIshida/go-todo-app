@@ -18,7 +18,6 @@ type Config struct {
 	Db               string
 	DbPassword       string
 	DbPort           string
-	DbPortLatest     string
 	Port             string
 }
 
@@ -37,7 +36,6 @@ func LoadConfig() {
 		Db:               os.Getenv("POSTGRES_DB"),
 		DbPassword:       os.Getenv("POSTGRES_PASSWORD"),
 		DbPort:           os.Getenv("POSTGRES_PORT"),
-		DbPortLatest:     os.Getenv("POSTGRES_PORT_LATEST"),
 		DbTenantUser:     os.Getenv("TENANT_USER"),
 		DbTenantUserPass: os.Getenv("TENANT_USER_PASS"),
 		DbCommonUser:     os.Getenv("COMMON_USER"),
