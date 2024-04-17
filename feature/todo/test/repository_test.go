@@ -308,4 +308,32 @@ func TestTodoRepositoryImpl_Delete(t *testing.T) {
 			t.Errorf("there were unfulfilled expectations: %s", err)
 		}
 	})
+
+	t.Run("異常：todo を削除でエラーが発生する", func(t *testing.T) {
+		errMessage := "update todo Error"
+		columns := []string{"id", "tenant_id", "title", "description", "is_deleted", "created_at", "create_user_id", "updated_at", "update_user_id"}
+		mock.ExpectQuery(
+			regexp.QuoteMeta(`SELECT * FROM "todos" WHERE is_deleted = $1 AND "todos"."id" = $2`)).WithArgs(
+			false,
+			testTodo.Id,
+		).WillReturnRows(sqlmock.NewRows(columns).AddRow(testTodo.Id, testTodo.TenantId, testTodo.Title, testTodo.Description, testTodo.IsDeleted, testTodo.CreatedAt, testTodo.CreateUserId, testTodo.UpdatedAt, testTodo.UpdateUserId))
+
+		mock.ExpectBegin()
+		mock.ExpectExec(
+			regexp.QuoteMeta(`UPDATE "todos" SET`)).WithArgs(
+			true,
+			sqlmock.AnyArg(),
+			testUserContext.Id,
+			false,
+			testTodo.Id,
+		).WillReturnError(errors.New(errMessage))
+		mock.ExpectRollback()
+
+		err := repository.Delete(ctx, testUserContext, testTodo.Id, mockDb)
+		assert.Error(t, err)
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+
+	})
 }
