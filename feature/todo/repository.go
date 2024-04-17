@@ -49,14 +49,14 @@ func (t *TodoRepositoryImpl) FindAll(ctx *gin.Context, userContext user.UserCont
 // Delete implements TodoRepository
 func (t *TodoRepositoryImpl) Delete(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) error {
 	var todo Todo
-	findResult := session.Find(&todo, id)
-	if findResult.Error != nil {
-		return fmt.Errorf("Todo not found. id: %s, message: %s", id, findResult.Error)
+	result := session.Where("is_deleted = ?", false).Find(&todo, id)
+	if result.Error != nil {
+		return fmt.Errorf("Todo not found. message: %s", result.Error)
 	}
 
-	result := session.Model(&todo).Where("is_deleted = ?", false).Updates(Todo{IsDeleted: true, UpdatedAt: time.Now(), UpdateUserId: userContext.Id})
-	if result.Error != nil {
-		return fmt.Errorf("fail to update. id: %s, message: %s", id, result.Error)
+	deleteResult := session.Model(&todo).Where("is_deleted = ?", false).Updates(Todo{IsDeleted: true, UpdatedAt: time.Now(), UpdateUserId: userContext.Id})
+	if deleteResult.Error != nil {
+		return fmt.Errorf("fail to update. id: %s, message: %s", id, deleteResult.Error)
 	}
 	return nil
 }

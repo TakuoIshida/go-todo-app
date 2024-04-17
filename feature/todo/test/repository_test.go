@@ -1,7 +1,6 @@
 package todo_test
 
 import (
-	"encoding/json"
 	"errors"
 	"go-todo-app/feature/todo"
 	"go-todo-app/feature/user"
@@ -13,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 )
 
 func TestTodoRepositoryImpl_Create(t *testing.T) {
@@ -94,20 +92,6 @@ func TestTodoRepositoryImpl_Create(t *testing.T) {
 		}
 	})
 }
-func structToMapKeyValues(s interface{}) ([]string, []interface{}) {
-	var result map[string]interface{}
-	indirect, _ := json.Marshal(s)
-	json.Unmarshal(indirect, &result)
-
-	keys := make([]string, 0, len(result))
-	values := make([]interface{}, 0, len(result))
-
-	for key, value := range result {
-		keys = append(keys, key)
-		values = append(values, value)
-	}
-	return keys, values
-}
 
 func TestTodoRepositoryImpl_FindById(t *testing.T) {
 	testTenantId := uuid.New()
@@ -150,12 +134,12 @@ func TestTodoRepositoryImpl_FindById(t *testing.T) {
 	repository := todo.NewTodoRepositoryImpl()
 
 	t.Run("正常：todoを取得できる", func(t *testing.T) {
-		keys, _ := structToMapKeyValues(testTodo)
+		columns := []string{"id", "tenant_id", "title", "description", "is_deleted", "created_at", "create_user_id", "updated_at", "update_user_id"}
 		mock.ExpectQuery(
 			regexp.QuoteMeta(`SELECT * FROM "todos" WHERE is_deleted = $1 AND "todos"."id" = $2`)).WithArgs(
 			false,
 			testTodo.Id,
-		).WillReturnRows(sqlmock.NewRows(keys).AddRow(testTodo.Id, testTodo.TenantId, testTodo.Title, testTodo.Description, testTodo.IsDeleted, testTodo.CreatedAt, testTodo.CreateUserId, testTodo.UpdatedAt, testTodo.UpdateUserId))
+		).WillReturnRows(sqlmock.NewRows(columns).AddRow(testTodo.Id, testTodo.TenantId, testTodo.Title, testTodo.Description, testTodo.IsDeleted, testTodo.CreatedAt, testTodo.CreateUserId, testTodo.UpdatedAt, testTodo.UpdateUserId))
 
 		repository.FindById(ctx, testUserContext, testTodoId, mockDb)
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -233,20 +217,17 @@ func TestTodoRepositoryImpl_FindAll(t *testing.T) {
 		UpdatedAt:    time.Now(),
 		UpdateUserId: testUserId,
 	}
-	todoList := []todo.Todo{testTodo, testTodo2}
-	println(todoList)
 	mockDb, mock := GetNewDbMock()
 	repository := todo.NewTodoRepositoryImpl()
 
 	query := `SELECT * FROM "todos" WHERE is_deleted = $1`
 
 	t.Run("正常：todo Listを取得できる", func(t *testing.T) {
-		keys, _ := structToMapKeyValues(testTodo)
-
+		columns := []string{"id", "tenant_id", "title", "description", "is_deleted", "created_at", "create_user_id", "updated_at", "update_user_id"}
 		mock.ExpectQuery(
 			regexp.QuoteMeta(query)).WithArgs(
 			false,
-		).WillReturnRows(sqlmock.NewRows(keys).AddRow(
+		).WillReturnRows(sqlmock.NewRows(columns).AddRow(
 			testTodo.Id, testTodo.TenantId, testTodo.Title, testTodo.Description, testTodo.IsDeleted, testTodo.CreatedAt, testTodo.CreateUserId, testTodo.UpdatedAt, testTodo.UpdateUserId,
 		).AddRow(
 			testTodo2.Id, testTodo2.TenantId, testTodo2.Title, testTodo2.Description, testTodo2.IsDeleted, testTodo2.CreatedAt, testTodo2.CreateUserId, testTodo2.UpdatedAt, testTodo2.UpdateUserId,
@@ -277,23 +258,54 @@ func TestTodoRepositoryImpl_FindAll(t *testing.T) {
 }
 
 func TestTodoRepositoryImpl_Delete(t *testing.T) {
-	type args struct {
-		ctx         *gin.Context
-		userContext user.UserContext
-		todo        todo.Todo
-		session     *gorm.DB
+	testTenantId := uuid.New()
+	testUserId := uuid.New()
+	testUserContext := user.UserContext{
+		Id:        testUserId,
+		TenantId:  testTenantId,
+		Email:     "example@gmail.com",
+		LastName:  "LastName",
+		FirstName: "FirstName",
+		AccountId: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
 	}
-	tests := []struct {
-		name string
-		tr   todo.ITodoRepository
-		args args
-		want error
-	}{{
-		// TODO: Add test cases.
-	}}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	ctx := &gin.Context{}
+	testTodo := todo.Todo{
+		Id:           uuid.New(),
+		TenantId:     testTenantId,
+		Title:        "Title",
+		Description:  "Description",
+		IsDeleted:    false,
+		CreatedAt:    time.Now(),
+		CreateUserId: testUserId,
+		UpdatedAt:    time.Now(),
+		UpdateUserId: testUserId,
+	}
 
-		})
-	}
+	mockDb, mock := GetNewDbMock()
+	repository := todo.NewTodoRepositoryImpl()
+
+	t.Run("正常：todo を削除できる", func(t *testing.T) {
+		columns := []string{"id", "tenant_id", "title", "description", "is_deleted", "created_at", "create_user_id", "updated_at", "update_user_id"}
+		mock.ExpectQuery(
+			regexp.QuoteMeta(`SELECT * FROM "todos" WHERE is_deleted = $1 AND "todos"."id" = $2`)).WithArgs(
+			false,
+			testTodo.Id,
+		).WillReturnRows(sqlmock.NewRows(columns).AddRow(testTodo.Id, testTodo.TenantId, testTodo.Title, testTodo.Description, testTodo.IsDeleted, testTodo.CreatedAt, testTodo.CreateUserId, testTodo.UpdatedAt, testTodo.UpdateUserId))
+
+		mock.ExpectBegin()
+		mock.ExpectExec(
+			regexp.QuoteMeta(`UPDATE "todos" SET`)).WithArgs(
+			true,
+			sqlmock.AnyArg(),
+			testUserContext.Id,
+			false,
+			testTodo.Id,
+		).WillReturnResult(sqlmock.NewResult(0, 1))
+		mock.ExpectCommit()
+
+		repository.Delete(ctx, testUserContext, testTodo.Id, mockDb)
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
 }
