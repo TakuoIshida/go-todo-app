@@ -110,10 +110,10 @@ func structToMapKeyValues(s interface{}) ([]string, []interface{}) {
 }
 
 func TestTodoRepositoryImpl_FindById(t *testing.T) {
-	// Given
 	testTenantId := uuid.New()
 	testUserId := uuid.New()
 	testTodoId := uuid.New()
+	testTodoId2 := uuid.New()
 	testUserContext := user.UserContext{
 		Id:        testUserId,
 		TenantId:  testTenantId,
@@ -135,13 +135,25 @@ func TestTodoRepositoryImpl_FindById(t *testing.T) {
 		UpdatedAt:    time.Now(),
 		UpdateUserId: testUserId,
 	}
+	testDeletedTodo := todo.Todo{
+		Id:           testTodoId2,
+		TenantId:     testTenantId,
+		Title:        "Title",
+		Description:  "Description",
+		IsDeleted:    true, //削除済み
+		CreatedAt:    time.Now(),
+		CreateUserId: testUserId,
+		UpdatedAt:    time.Now(),
+		UpdateUserId: testUserId,
+	}
 	mockDb, mock := GetNewDbMock()
 	repository := todo.NewTodoRepositoryImpl()
 
 	t.Run("正常：todoを取得できる", func(t *testing.T) {
 		keys, _ := structToMapKeyValues(testTodo)
 		mock.ExpectQuery(
-			regexp.QuoteMeta(`SELECT * FROM "todos"`)).WithArgs(
+			regexp.QuoteMeta(`SELECT * FROM "todos" WHERE is_deleted = $1 AND "todos"."id" = $2`)).WithArgs(
+			false,
 			testTodo.Id,
 		).WillReturnRows(sqlmock.NewRows(keys).AddRow(testTodo.Id, testTodo.TenantId, testTodo.Title, testTodo.Description, testTodo.IsDeleted, testTodo.CreatedAt, testTodo.CreateUserId, testTodo.UpdatedAt, testTodo.UpdateUserId))
 
@@ -151,9 +163,28 @@ func TestTodoRepositoryImpl_FindById(t *testing.T) {
 		}
 	})
 
+	t.Run("異常：削除されたtodoは取得できない", func(t *testing.T) {
+		mock.ExpectQuery(
+			regexp.QuoteMeta(`SELECT * FROM "todos" WHERE is_deleted = $1 AND "todos"."id" = $2`)).WithArgs(
+			false,
+			testDeletedTodo.Id,
+		).WillReturnError(errors.New("fail to find todo"))
+
+		_, err := repository.FindById(ctx, testUserContext, testDeletedTodo.Id, mockDb)
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+
+		if assert.Error(t, err) {
+			assert.Equal(t, "Todo not found. message: fail to find todo", err.Error())
+		}
+	})
+
 	t.Run("異常：todoを取得でエラー", func(t *testing.T) {
 		mock.ExpectQuery(
-			regexp.QuoteMeta(`SELECT * FROM "todos"`)).WithArgs(
+			regexp.QuoteMeta(`SELECT * FROM "todos" WHERE is_deleted = $1 AND "todos"."id" = $2`)).WithArgs(
+			false,
 			testTodo.Id,
 		).WillReturnError(errors.New("fail to find todo"))
 
@@ -169,25 +200,80 @@ func TestTodoRepositoryImpl_FindById(t *testing.T) {
 }
 
 func TestTodoRepositoryImpl_FindAll(t *testing.T) {
-	type args struct {
-		ctx         *gin.Context
-		userContext user.UserContext
-		todo        todo.Todo
-		session     *gorm.DB
+	testTenantId := uuid.New()
+	testUserId := uuid.New()
+	testUserContext := user.UserContext{
+		Id:        testUserId,
+		TenantId:  testTenantId,
+		Email:     "example@gmail.com",
+		LastName:  "LastName",
+		FirstName: "FirstName",
+		AccountId: uuid.MustParse("00000000-0000-0000-0000-000000000000"),
 	}
-	tests := []struct {
-		name string
-		tr   todo.ITodoRepository
-		args args
-		want error
-	}{{
-		// TODO: Add test cases.
-	}}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	ctx := &gin.Context{}
+	testTodo := todo.Todo{
+		Id:           uuid.New(),
+		TenantId:     testTenantId,
+		Title:        "Title",
+		Description:  "Description",
+		IsDeleted:    false,
+		CreatedAt:    time.Now(),
+		CreateUserId: testUserId,
+		UpdatedAt:    time.Now(),
+		UpdateUserId: testUserId,
+	}
+	testTodo2 := todo.Todo{
+		Id:           uuid.New(),
+		TenantId:     testTenantId,
+		Title:        "Title",
+		Description:  "Description",
+		IsDeleted:    false,
+		CreatedAt:    time.Now(),
+		CreateUserId: testUserId,
+		UpdatedAt:    time.Now(),
+		UpdateUserId: testUserId,
+	}
+	todoList := []todo.Todo{testTodo, testTodo2}
+	println(todoList)
+	mockDb, mock := GetNewDbMock()
+	repository := todo.NewTodoRepositoryImpl()
 
-		})
-	}
+	query := `SELECT * FROM "todos" WHERE is_deleted = $1`
+
+	t.Run("正常：todo Listを取得できる", func(t *testing.T) {
+		keys, _ := structToMapKeyValues(testTodo)
+
+		mock.ExpectQuery(
+			regexp.QuoteMeta(query)).WithArgs(
+			false,
+		).WillReturnRows(sqlmock.NewRows(keys).AddRow(
+			testTodo.Id, testTodo.TenantId, testTodo.Title, testTodo.Description, testTodo.IsDeleted, testTodo.CreatedAt, testTodo.CreateUserId, testTodo.UpdatedAt, testTodo.UpdateUserId,
+		).AddRow(
+			testTodo2.Id, testTodo2.TenantId, testTodo2.Title, testTodo2.Description, testTodo2.IsDeleted, testTodo2.CreatedAt, testTodo2.CreateUserId, testTodo2.UpdatedAt, testTodo2.UpdateUserId,
+		))
+
+		_, err := repository.FindAll(ctx, testUserContext, mockDb)
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+		assert.Nil(t, err)
+	})
+
+	t.Run("異常：todoを取得でエラー", func(t *testing.T) {
+		mock.ExpectQuery(
+			regexp.QuoteMeta(query)).WithArgs(
+			false,
+		).WillReturnError(errors.New("fail to find todo list"))
+
+		_, err := repository.FindAll(ctx, testUserContext, mockDb)
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+
+		if assert.Error(t, err) {
+			assert.Equal(t, "Todo not found. message: fail to find todo list", err.Error())
+		}
+	})
 }
 
 func TestTodoRepositoryImpl_Delete(t *testing.T) {

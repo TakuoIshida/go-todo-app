@@ -29,7 +29,7 @@ func (t *TodoRepositoryImpl) Create(ctx *gin.Context, userContext user.UserConte
 // FindById implements TodoRepository
 func (t *TodoRepositoryImpl) FindById(ctx *gin.Context, userContext user.UserContext, id uuid.UUID, session *gorm.DB) (Todo, error) {
 	var todo Todo
-	result := session.Find(&todo, id)
+	result := session.Where("is_deleted = ?", false).Find(&todo, id)
 	if result.Error != nil {
 		return Todo{}, fmt.Errorf("Todo not found. message: %s", result.Error)
 	}
@@ -39,7 +39,7 @@ func (t *TodoRepositoryImpl) FindById(ctx *gin.Context, userContext user.UserCon
 // FindAll implements TodoRepository
 func (t *TodoRepositoryImpl) FindAll(ctx *gin.Context, userContext user.UserContext, session *gorm.DB) ([]Todo, error) {
 	var todo []Todo
-	result := session.Find(&todo)
+	result := session.Where("is_deleted = ?", false).Find(&todo)
 	if result.Error != nil {
 		return nil, fmt.Errorf("Todo not found. message: %s", result.Error)
 	}
