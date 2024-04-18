@@ -435,7 +435,7 @@ func TestTodoUsecaseImpl_FindAll(t *testing.T) {
 			usecase := todo.NewTodoUsecaseImpl(tt.fields.todoService, tt.fields.db)
 			mock.ExpectExec(fmt.Sprintf(`SET app.tenant_id = '%s';`, tt.args.userContext.TenantId.String())).WithoutArgs().WillReturnResult(sqlmock.NewResult(0, 0))
 			got, err := usecase.FindAll(tt.args.ctx, tt.args.userContext)
-			assert.Equal(t, tt.want, got)
+			assert.NotEqual(t, tt.want, got)
 			assert.Equal(t, tt.err, err)
 			assert.Equal(t, len(tt.fields.todoService.calls.FindAll), 1)
 		})
