@@ -3,7 +3,6 @@ package auth
 import (
 	"errors"
 	"go-todo-app/feature/user"
-	"go-todo-app/helper"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -28,7 +27,7 @@ func AuthRequired() gin.HandlerFunc {
 func GetPrincipal(ctx *gin.Context) (user.UserContext, error) {
 	principal, exists := ctx.Get("AuthorizedUser")
 	if !exists {
-		helper.ErrorPanic(errors.New("unauthorized"))
+		return user.UserContext{}, errors.New("unauthorized")
 	}
 	userContext, ok := principal.(user.UserContext)
 	if !ok {
