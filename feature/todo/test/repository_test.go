@@ -2,6 +2,7 @@ package todo_test
 
 import (
 	"errors"
+	"fmt"
 	"go-todo-app/feature/todo"
 	"go-todo-app/feature/user"
 	"regexp"
@@ -13,6 +14,22 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
+
+func setUp() {
+	// test DBの初期化とBegin
+	fmt.Println("setUp")
+}
+
+func teardown() {
+	// RollbackとDBのクローズ
+	fmt.Println("teardown")
+}
+
+func TestMain(m *testing.M) {
+	setUp()
+	m.Run()
+	teardown()
+}
 
 func TestTodoRepositoryImpl_Create(t *testing.T) {
 	// Given
